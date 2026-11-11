@@ -62,4 +62,4 @@ npm run seed
 npm run dev
 ```
 
-The supplied MongoDB URI is verified and remains in the ignored `server/.env`. Demo credentials are documented in `phase-2.md`. No secrets are committed. Phase 4 requires `XAI_API_KEY` and an explicitly chosen `XAI_MODEL`; both were missing when this phase was implemented.
+The supplied MongoDB URI is verified and remains in the ignored `server/.env`. Demo credentials are documented in `phase-2.md`. No secrets are committed. The later provider instruction selected Groq. Its configuration and successful live verification are documented in `phase-4.md`.

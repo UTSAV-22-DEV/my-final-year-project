@@ -1,4 +1,4 @@
-import { Project, Proposal, Submission, Evaluation, Feedback, Notification, User } from '../models/index.js';
+import { Project, Proposal, Submission, Evaluation, Feedback, User } from '../models/index.js';
 import mongoose from 'mongoose';
 import { accessibleProject, accessibleProjectIds, projectScope } from '../services/accessService.js';
 import { text } from '../middleware/accountValidation.js';
@@ -58,7 +58,7 @@ export async function createFeedback(req, res) {
   if (submissionStatus && (!submission || !['approved', 'revision_required', 'reviewed'].includes(submissionStatus))) throw new AppError(400, 'Select a submission and a valid review status.', 'VALIDATION_ERROR');
   const feedback = await Feedback.create({ project: project._id, submission: submission?._id, author: req.user._id, message, category, submissionStatus });
   if (submissionStatus) await Submission.updateOne({ _id: submission._id }, { $set: { reviewStatus: submissionStatus, reviewedBy: req.user._id, reviewedAt: new Date() } });
-  await notify(req, project.members, { type: 'feedback', project: project._id, title: 'New supervisor feedback', message: `${req.user.name} provided feedback on ${project.title}.` });
+  await notify(req, project.members, { type: 'feedback', project: project._id, resourceType: 'feedback', resourceId: feedback._id, eventKey: `feedback:${feedback._id}:created`, title: submissionStatus === 'revision_required' ? 'Submission requires revision' : 'New supervisor feedback', message: `${req.user.name} provided feedback on ${project.title}.` });
   res.status(201).json({ feedback });
 }
 
@@ -77,19 +77,8 @@ export async function updateFeedback(req, res) {
   }
   await feedback.save();
   const project = await accessibleProject(req.user, feedback.project);
-  await notify(req, project.members, { type: 'feedback', project: project._id, title: 'Feedback updated', message: `${req.user.name} updated feedback on ${project.title}.` });
+  await notify(req, project.members, { type: 'feedback', project: project._id, resourceType: 'feedback', resourceId: feedback._id, eventKey: `feedback:${feedback._id}:updated:${feedback.updatedAt.toISOString()}`, title: 'Feedback updated', message: `${req.user.name} updated feedback on ${project.title}.` });
   res.json({ feedback });
-}
-
-export async function notifications(req, res) {
-  const records = await Notification.find({ recipient: req.user._id }).sort({ createdAt: -1 }).limit(50);
-  res.json({ notifications: records });
-}
-
-export async function readNotification(req, res) {
-  const record = await Notification.findOneAndUpdate({ _id: req.params.id, recipient: req.user._id }, { $set: { readAt: new Date() } }, { returnDocument: 'after' });
-  if (!record) throw new AppError(404, 'This notification was not found.', 'NOT_FOUND');
-  res.json({ notification: record });
 }
 
 export async function assignedStudents(req, res) {

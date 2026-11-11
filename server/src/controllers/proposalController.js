@@ -34,7 +34,7 @@ export async function createProposal(req, res) {
     submittedAt: status === 'pending' ? new Date() : undefined, auditTrail: [{ status, actor: req.user._id }] });
   if (status === 'pending') {
     await Project.updateOne({ _id: project._id }, { $set: { status: 'proposed' } });
-    await notify(req, project.supervisor ? [project.supervisor] : [], { type: 'proposal', project: project._id, title: 'New proposal to review', message: `${project.teamName}: ${proposal.title}.` });
+    await notify(req, project.supervisor ? [project.supervisor] : [], { type: 'proposal', project: project._id, resourceType: 'proposal', resourceId: proposal._id, eventKey: `proposal:${proposal._id}:submitted:${proposal.auditTrail.length}`, title: 'New proposal to review', message: `${project.teamName}: ${proposal.title}.` });
   }
   res.status(201).json({ proposal });
 }
@@ -64,7 +64,7 @@ export async function submitProposal(req, res) {
   }, { returnDocument: 'after', runValidators: true });
   if (!proposal) throw new AppError(409, 'The proposal changed. Reload to continue.', 'INVALID_STATE');
   await Project.updateOne({ _id: project._id }, { $set: { status: 'proposed' } });
-  await notify(req, project.supervisor ? [project.supervisor] : [], { type: 'proposal', project: project._id, title: 'Proposal submitted', message: `${project.teamName}: ${proposal.title}.` });
+  await notify(req, project.supervisor ? [project.supervisor] : [], { type: 'proposal', project: project._id, resourceType: 'proposal', resourceId: proposal._id, eventKey: `proposal:${proposal._id}:submitted:${proposal.auditTrail.length}`, title: 'Proposal submitted', message: `${project.teamName}: ${proposal.title}.` });
   res.json({ proposal });
 }
 
@@ -80,6 +80,6 @@ export async function reviewProposal(req, res) {
   }, { returnDocument: 'after', runValidators: true });
   if (!proposal) throw new AppError(409, 'This proposal is not pending review.', 'INVALID_STATE');
   await Project.updateOne({ _id: project._id }, { $set: proposal.status === 'approved' ? { status: 'active', title: proposal.title } : { status: 'proposed' } });
-  await notify(req, project.members, { type: 'proposal', project: project._id, title: 'Proposal reviewed', message: `${project.teamName}: ${proposal.status.replaceAll('_', ' ')}.` });
+  await notify(req, project.members, { type: 'proposal', project: project._id, resourceType: 'proposal', resourceId: proposal._id, eventKey: `proposal:${proposal._id}:review:${proposal.auditTrail.length}`, title: 'Proposal reviewed', message: `${project.teamName}: ${proposal.status.replaceAll('_', ' ')}.` });
   res.json({ proposal });
 }

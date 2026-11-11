@@ -22,7 +22,7 @@ const { User, Project, Proposal, Evaluation } = models;
 const app = createApp(); app.set('evaluationModel', 'automated-test-only');
 const password = process.env.DEMO_PASSWORD || 'FypDemo2026!';
 const write = (method, url, cookie) => request(app)[method](url).set('X-FYP-Request', '1').set('Cookie', cookie || '');
-const valid = () => ({ criteria: rubric.map((criterion) => ({ name: criterion.name, marks: criterion.maxMarks / 2, explanation: 'Automated API mock, not actual Grok output.', strengths: ['Clear objectives.'], weaknesses: ['More evidence needed.'], improvements: ['Measure the outcomes.'] })), suggestions: 'Expand the evidence.' });
+const valid = () => ({ criteria: rubric.map((criterion) => ({ name: criterion.name, marks: criterion.maxMarks / 2, explanation: 'Automated API mock, not actual Groq output.', strengths: ['Clear objectives.'], weaknesses: ['More evidence needed.'], improvements: ['Measure the outcomes.'] })), suggestions: 'Expand the evidence.' });
 let studentCookie, teacherCookie, outsiderCookie, group, report, finalReport, firstEvaluation;
 async function login(email) { return (await write('post', '/api/auth/login').send({ email, password }).expect(200)).headers['set-cookie'][0].split(';')[0]; }
 before(async () => {

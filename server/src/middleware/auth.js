@@ -13,7 +13,7 @@ export async function userFromToken(token) {
   } catch {
     throw new AppError(401, 'Your session is invalid or expired.', 'INVALID_TOKEN');
   }
-  if (!payload.sub || !mongoose.isObjectIdOrHexString(payload.sub)) {
+  if (!payload.sub || !mongoose.isObjectIdOrHexString(payload.sub) || !Number.isFinite(payload.exp)) {
     throw new AppError(401, 'Your session is invalid or expired.', 'INVALID_TOKEN');
   }
   if (mongoose.connection.readyState !== 1) {

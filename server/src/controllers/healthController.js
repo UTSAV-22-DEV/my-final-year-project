@@ -5,7 +5,7 @@ export function health(req, res) {
   res.set('Cache-Control', 'no-store').json({
     status: 'ok',
     service: 'fyp-api',
-    phase: 1,
+    phase: 5,
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
     database: databaseStatus(),

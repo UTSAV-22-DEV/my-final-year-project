@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { LoaderCircle, ShieldCheck, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -15,6 +15,8 @@ export function EvaluationPage() {
   const [projectId, setProjectId] = useState(searchParams.get('project') || ''); const [submissionId, setSubmissionId] = useState('');
   const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [notice, setNotice] = useState('');
   const [uploading, setUploading] = useState(false); const [confirmed, setConfirmed] = useState(false);
+  const targetProject = searchParams.get('project');
+  useEffect(() => { if (targetProject) { setProjectId(targetProject); setSubmissionId(''); setConfirmed(false); } }, [targetProject]);
   const requests = [projects, submissions, evaluations, settings];
   if (requests.some((request) => request.loading)) return <SkeletonCards />;
   if (requests.some((request) => request.error)) return <ErrorState message={requests.find((request) => request.error).error} onRetry={() => requests.forEach((request) => request.refresh())} />;
@@ -24,8 +26,8 @@ export function EvaluationPage() {
   const latest = history.at(-1); const closed = project && ['submitted', 'completed'].includes(project.status);
   async function evaluate() {
     setBusy(true); setError(''); setNotice('');
-    try { await apiRequest(`/submissions/${submissionId}/evaluate`, { method: 'POST', timeoutMs: 120000 }); setNotice('Grok evaluation completed. Your teacher will review the final assessment.'); dataChanged(); }
-    catch (failure) { setError(failure.message || 'Evaluation could not complete. Refresh history before retrying.'); }
+    try { await apiRequest(`/submissions/${submissionId}/evaluate`, { method: 'POST', timeoutMs: 120000 }); setNotice('Groq evaluation completed. Your teacher will review the final assessment.'); dataChanged(); }
+    catch (failure) { setError(failure.message || 'Evaluation could not complete. Refresh history before retrying.'); dataChanged(); }
     finally { setBusy(false); }
   }
   async function finalSubmit() {
@@ -34,14 +36,14 @@ export function EvaluationPage() {
     catch (failure) { setError(failure.message); } finally { setBusy(false); }
   }
   return <div className="page-stack"><PageHeading title={teacher ? 'Evaluation review' : 'AI-assisted evaluation'} subtitle={teacher ? 'Review the evidence and make the final academic decision.' : 'Use rubric-based feedback to refine your report before final assessment.'} />
-    {!teacher && <div className="assessment-notice"><ShieldCheck size={20} aria-hidden="true" /><p>Reports are sent to xAI for preliminary feedback. AI scores support revision; your teacher controls the final grade. <strong>Demonstration rubric · 10 criteria · 100 marks.</strong></p></div>}
-    {!teacher && !settings.data.configured && <div className="form-error" role="alert">The AI service is not configured. Your administrator must finish Grok service setup. No attempts are consumed while it is unavailable, and no simulated evaluations are enabled.</div>}
+    {!teacher && <div className="assessment-notice"><ShieldCheck size={20} aria-hidden="true" /><p>Reports are sent to Groq for preliminary feedback. AI scores support revision; your teacher controls the final grade. <strong>Demonstration rubric · 10 criteria · 100 marks.</strong></p></div>}
+    {!teacher && !settings.data.configured && <div className="form-error" role="alert">The AI service is not configured. Your administrator must finish Groq service setup. No attempts are consumed while it is unavailable, and no simulated evaluations are enabled.</div>}
     <section className="panel dashboard-section workspace-form"><label>Project group<select value={projectId} onChange={(event) => { setProjectId(event.target.value); setSubmissionId(''); setConfirmed(false); setError(''); setNotice(''); }} disabled={busy}><option value="">Select a project group</option>{projects.data.projects.map((project) => <option key={project._id} value={project._id}>{project.teamName} · {project.title}</option>)}</select></label></section>
     {notice && <p className="form-success" role="status">{notice}</p>}{error && <p className="form-error" role="alert">{error}</p>}
     {!project ? <section className="panel"><EmptyState icon={Sparkles} title="Choose a project to begin" message="Evaluation history and assessment details are restricted to your authorized projects." /></section> : <>
       <div className="assessment-summary"><article><span>Successful AI attempts</span><strong>{history.length} / 2</strong></article><article><span>{closed ? 'Evaluation access' : 'Remaining attempts'}</span><strong>{closed ? 'Closed' : 2 - history.length}</strong></article><article><span>Latest preliminary AI score</span><strong>{latest ? `${latest.totalScore} / 100` : 'Not evaluated'}</strong></article><article><span>Project status</span><Badge status={project.status} /></article></div>
       <section className="panel dashboard-section"><h2>{project.teamName || 'Project group'}</h2><p className="body-copy">{project.title}<br />Members: {project.members.map((member) => member.name).join(', ')}<br />Supervisor: {project.supervisor?.name || 'Not assigned'}</p></section>
-      {!teacher && !closed && <section className="panel dashboard-section"><div className="section-heading"><h2>Choose your report</h2><button className="button secondary small" onClick={() => setUploading(!uploading)} disabled={busy}>Upload report</button></div>{uploading && <UploadForm onDone={(message) => { setUploading(false); setNotice(message); }} />}<div className="workspace-form"><label>Project document<select value={submissionId} onChange={(event) => setSubmissionId(event.target.value)} disabled={busy}><option value="">Select an uploaded report</option>{reports.map((submission) => <option key={submission._id} value={submission._id}>Revision {submission.revision} · {submission.document.originalName}</option>)}</select></label><button className="button primary" disabled={busy || !submissionId || history.length >= 2 || !settings.data.configured} onClick={evaluate}>{busy ? <LoaderCircle size={17} className="spin" aria-hidden="true" /> : <Sparkles size={17} aria-hidden="true" />}{busy ? 'Evaluating report…' : 'Evaluate with Grok'}</button><p className="list-note">Only successful evaluations consume attempts. Scanned PDFs require OCR and cannot be evaluated here. Long requests may take up to 90 seconds.</p></div></section>}
+      {!teacher && !closed && <section className="panel dashboard-section"><div className="section-heading"><h2>Choose your report</h2><button className="button secondary small" onClick={() => setUploading(!uploading)} disabled={busy}>Upload report</button></div>{uploading && <UploadForm onDone={(message) => { setUploading(false); setNotice(message); }} />}<div className="workspace-form"><label>Project document<select value={submissionId} onChange={(event) => setSubmissionId(event.target.value)} disabled={busy}><option value="">Select an uploaded report</option>{reports.map((submission) => <option key={submission._id} value={submission._id}>Revision {submission.revision} · {submission.document.originalName}</option>)}</select></label><button className="button primary" disabled={busy || !submissionId || history.length >= 2 || !settings.data.configured} onClick={evaluate}>{busy ? <LoaderCircle size={17} className="spin" aria-hidden="true" /> : <Sparkles size={17} aria-hidden="true" />}{busy ? 'Evaluating report…' : 'Evaluate with Groq'}</button><p className="list-note">Only successful evaluations consume attempts. Scanned PDFs require OCR and cannot be evaluated here. Long requests may take up to 90 seconds.</p></div></section>}
       {project.finalSubmission && <section className="panel dashboard-section"><div className="section-heading"><h2>Final report</h2><Badge status={project.finalGrade ? 'completed' : 'submitted'} /></div><a className="button secondary" href={apiUrl(`/submissions/${project.finalSubmission}/download`)}>Download final report</a><p className="list-note">Submitted <DateLabel value={project.finalSubmittedAt} /></p></section>}
       {latest && <ScoreBreakdown evaluation={latest} />}
       {user.role === 'teacher' && project.status === 'submitted' && latest && <GradeEditor key={latest._id} project={project} evaluation={latest} />}

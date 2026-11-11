@@ -9,8 +9,8 @@ import { AppError } from '../utils/AppError.js';
 import mongoose from 'mongoose';
 
 export async function evaluationConfig(req, res) {
-  res.json({ configured: Boolean(config.xaiApiKey && config.xaiModel), model: config.xaiModel || null, rubric, rubricVersion,
-    simulated: false, attemptLimit: 2, maxCharacters: 200000, maxPages: 200, ocrSupported: false });
+  res.json({ configured: Boolean(config.groqApiKey && config.groqModel), model: config.groqModel || null, rubric, rubricVersion,
+    simulated: false, attemptLimit: 2, maxCharacters: config.aiMaxTextChars, maxPages: 200, ocrSupported: false });
 }
 export async function evaluate(req, res) { res.status(201).json({ evaluation: await evaluateSubmission(req, req.params.id) }); }
 
@@ -29,7 +29,7 @@ export async function finalSubmit(req, res) {
   }, { returnDocument: 'after' });
   if (!updated) throw new AppError(409, 'Wait for the running evaluation or refresh the project status.', 'INVALID_STATE');
   await Submission.updateOne({ _id: submission._id }, { $set: { stage: 'final' } });
-  await notify(req, project.supervisor ? [project.supervisor] : [], { type: 'submission', project: project._id, title: 'Final report submitted', message: `${project.teamName} submitted its final report for teacher assessment.` });
+  await notify(req, project.supervisor ? [project.supervisor] : [], { type: 'submission', project: project._id, resourceType: 'submission', resourceId: submission._id, eventKey: `final-submission:${project._id}:${submission._id}`, title: 'Final report submitted', message: `${project.teamName} submitted its final report for teacher assessment.` });
   res.json({ project: updated });
 }
 
@@ -51,6 +51,6 @@ export async function finalizeGrade(req, res) {
     $set: { status: 'completed', finalGrade: { score, criteria, comment, finalizedBy: req.user._id, finalizedAt: new Date(), evaluation: original._id, submission: project.finalSubmission } },
   }, { returnDocument: 'after', runValidators: true });
   if (!updated) throw new AppError(409, 'The grade was already finalized or the supervisor assignment changed.', 'GRADE_LOCKED');
-  await notify(req, project.members, { type: 'evaluation', project: project._id, title: 'Final grade available', message: `${project.teamName}: your teacher has finalized the assessment. View your project for the final grade.` });
+  await notify(req, project.members, { type: 'grade', project: project._id, resourceType: 'grade', resourceId: project._id, eventKey: `grade:${project._id}:finalized`, title: 'Final grade available', message: `${project.teamName}: your teacher has finalized the assessment. View your project for the final grade.` });
   res.json({ project: updated });
 }

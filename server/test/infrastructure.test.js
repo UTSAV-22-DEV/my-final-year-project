@@ -17,7 +17,7 @@ test('liveness is available without a database and readiness reports the truth',
   const app = createApp();
   const response = await request(app).get('/api/health').expect(200);
   assert.equal(response.body.status, 'ok');
-  assert.equal(response.body.phase, 1);
+  assert.equal(response.body.phase, 5);
   assert.equal(response.body.database.status, 'disconnected');
   assert.equal(response.headers['x-powered-by'], undefined);
   assert.equal(response.headers['x-content-type-options'], 'nosniff');

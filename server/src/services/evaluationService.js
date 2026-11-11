@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Project, Submission, Evaluation } from '../models/index.js';
 import { accessibleProject } from './accessService.js';
 import { extractDocumentText } from './extractionService.js';
-import { evaluateWithGrok, validateEvaluationResponse } from './grokService.js';
+import { evaluateWithGroq, validateEvaluationResponse } from './groqService.js';
 import { rubricVersion } from '../config/rubric.js';
 import { notify } from './notificationService.js';
 import { AppError } from '../utils/AppError.js';
@@ -26,14 +26,14 @@ export async function evaluateSubmission(req, submissionId) {
     const previous = await Evaluation.find({ project: project._id, status: 'completed' }).sort({ attempt: 1 });
     if (previous.length >= 2) throw new AppError(409, 'This project has used both successful AI evaluation attempts.', 'ATTEMPT_LIMIT');
     const text = await extractDocumentText(submission.document);
-    // Tests inject only the external API boundary; application requests always use Grok.
-    const evaluator = req.app.get('evaluateReport') || evaluateWithGrok;
+    // Tests inject only the external API boundary; application requests always use Groq.
+    const evaluator = req.app.get('evaluateReport') || evaluateWithGroq;
     const raw = await evaluator(text);
     const validated = validateEvaluationResponse(raw);
     completed = await Evaluation.create({ ...validated, project: project._id, submission: submission._id, requestedBy: req.user._id,
-      attempt: previous.length + 1, status: 'completed', model: req.app.get('evaluationModel') || config.xaiModel,
+      attempt: previous.length + 1, status: 'completed', model: req.app.get('evaluationModel') || config.groqModel,
       rubricVersion, document: submission.document.toObject(), completedAt: new Date() });
-    await notify(req, project.members, { type: 'evaluation', project: project._id, title: 'AI evaluation completed', message: `Attempt ${completed.attempt} is ready for ${project.teamName}. Scores are preliminary until teacher review.` });
+    await notify(req, project.members, { type: 'evaluation', project: project._id, resourceType: 'evaluation', resourceId: completed._id, eventKey: `evaluation:${completed._id}:completed`, title: 'AI evaluation completed', message: `Attempt ${completed.attempt} is ready for ${project.teamName}. Scores are preliminary until teacher review.` });
     return completed;
   } finally {
     const count = await Evaluation.countDocuments({ project: project._id, status: 'completed' }).catch(() => null);

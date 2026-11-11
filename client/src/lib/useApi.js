@@ -17,8 +17,10 @@ export function useApi(path) {
   }, [path, revision]);
   useEffect(() => {
     window.addEventListener('fyp:data-changed', refresh);
-    return () => window.removeEventListener('fyp:data-changed', refresh);
-  }, [refresh]);
+    const receivesNotifications = path.includes('/notifications') || path.endsWith('/dashboard');
+    if (receivesNotifications) window.addEventListener('fyp:notifications-changed', refresh);
+    return () => { window.removeEventListener('fyp:data-changed', refresh); window.removeEventListener('fyp:notifications-changed', refresh); };
+  }, [path, refresh]);
   return { data, loading, error, refresh };
 }
 

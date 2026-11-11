@@ -1,32 +1,23 @@
 # AI-Assisted Final Year Project Management System
 
-**Current implementation: Phase 4 AI-assisted assessment.** See [Phase 4 configuration and verification](docs/phase-4.md), [Phase 3 workflows](docs/phase-3.md) and [Phase 2 credentials and authentication](docs/phase-2.md). Real Grok verification requires `XAI_API_KEY` and `XAI_MODEL`; neither is configured yet. The Phase 1 description below is retained as historical foundation documentation.
+A presentation-ready MERN application for students, teachers and administrators. Phases 1–5 are implemented: authentication, academic workflows, private documents, AI-assisted assessment, teacher grading and real-time notifications.
 
-A shared academic workspace for students, teachers and administrators. **Phase 1 provides the application foundation only.** Academic workflows, sign-in and AI evaluation are deliberately reserved for later phases.
+The functional reference is [the research paper](docs/research-paper.docx). The AI provider is **Groq**, following the updated project instruction. It uses the documented `openai/gpt-oss-20b` model and actual backend API requests. There is no simulated application evaluator.
 
-The functional specification is [the supplied research paper](docs/research-paper.docx). Implementation decisions and the remaining specification gaps are recorded in [docs/phase-1.md](docs/phase-1.md).
+## Start the application
 
-## Requirements
-
-- Node.js **24.13.0 or a newer 24.x release**, npm 11+
-- MongoDB Community Server or a MongoDB Atlas connection URI for persistent data
-- Chromium for optional browser tests (`npx playwright install chromium`)
-
-Tested package versions are locked in `package-lock.json`. The stack uses React 19, Vite 8, Tailwind CSS 4 with its Vite plugin, Express 5 and Mongoose 9. The backend also includes bcrypt, JWT, Multer and Socket.IO. No xAI API calls are made in this phase.
-
-## Run locally
-
-From PowerShell:
+Node.js 24.x and npm 11+ are required. MongoDB and Groq credentials are already configured in the ignored local `server/.env` on this machine.
 
 ```powershell
 Set-Location D:\my-final-year-project
 npm ci
+npm run seed
 npm run dev
 ```
 
-Open **http://localhost:5173**. Express runs at **http://localhost:4000**. `npm run dev` starts both processes and stops the other process if either exits. Press Ctrl+C to stop both.
+Open **http://localhost:5173**. The API and Socket.IO run at **http://localhost:4000**. On the current installation dependencies and demo data are already prepared, so `npm run dev` is sufficient. Ctrl+C stops both services.
 
-Local `.env` files were prepared during initial setup and are ignored by Git. On a fresh checkout, prepare them first:
+For a fresh checkout, copy the examples first and supply your own credentials:
 
 ```powershell
 Copy-Item server/.env.example server/.env
@@ -34,138 +25,113 @@ Copy-Item client/.env.example client/.env
 node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
 ```
 
-Put the generated value in `JWT_SECRET` in `server/.env`. Set `MONGODB_URI` to your actual database URI. Examples:
+Put the generated value in `JWT_SECRET`. Set `MONGODB_URI` to an accessible database URI and `GROQ_API_KEY` to your [Groq API key](https://console.groq.com/keys). Restart the backend after changing its environment. No secrets belong in `VITE_*` variables or Git.
 
-```dotenv
-# Local MongoDB, if installed and running:
-MONGODB_URI=mongodb://127.0.0.1:27017/fyp_management
-# Or use your Atlas URI with a named application database.
-```
+## Demo credentials
 
-Restart the backend after editing `server/.env`. The backend loads this file relative to the server directory regardless of the shell working directory.
+| Role | Email | Development password |
+| --- | --- | --- |
+| Student | `student@fyp.demo` | `FypDemo2026!` |
+| Teacher | `teacher@fyp.demo` | `FypDemo2026!` |
+| Admin | `admin@fyp.demo` | `FypDemo2026!` |
 
-**Without MongoDB:** the interface, API liveness and infrastructure preview run normally. Readiness returns HTTP 503, and the interface states that MongoDB is not connected. Academic persistence and database-backed authentication cannot work until a connection is configured. Initial connection failure is logged safely; after correcting it, restart the server. No database connection success is inferred from schema tests.
+The seed creates missing accounts, a student project/group and a pending proposal. It preserves existing passwords, roles, reviews and records. `DEMO_PASSWORD` overrides the default for newly created accounts. Seeding refuses production mode and never clears collections. Demo passwords are not included in frontend application source.
+
+## Demonstrate the workflows
+
+1. Use an admin session to create student/teacher accounts, create a group, add members and assign a supervisor. A student can belong to one active group.
+2. In a student session, open Proposals to save a draft or submit a full proposal. In a separate teacher session, approve it or request revisions. The student sees the persisted decision and a live notification.
+3. Upload a PDF or DOCX from Documents. The teacher downloads it, adds categorized feedback and chooses a review status. Resubmissions retain earlier report revisions.
+4. Share a teacher resource and download it from the student's Resources page.
+5. Open AI Evaluation, choose the project and a report, then request Groq feedback. Each project has two successful attempts. Failed requests and invalid documents consume none.
+6. Submit the final report. The assigned teacher opens Evaluation Review, adjusts the ten marks, adds comments and finalizes the grade. Original AI scores remain available.
+7. Keep the student dashboard open in the other session: feedback and grade notifications arrive without refreshing. Open the bell to read them; refresh to confirm persistence.
+
+Use separate browser profiles, private windows or different browsers for student and teacher sessions. Tabs within one browser profile share the same account cookie. Logout revokes all existing sessions for that account.
+
+## Groq configuration and limits
+
+| Variable | Default / purpose |
+| --- | --- |
+| `GROQ_API_KEY` | Required private server credential |
+| `GROQ_MODEL` | `openai/gpt-oss-20b` |
+| `AI_MAX_TEXT_CHARS` | `16000`, a conservative input budget for the free tier; configurable from 1,000 to 200,000 |
+| `MAX_FILE_SIZE_MB` | `10`, configurable from 1–50 MB for uploads |
+
+AI extraction accepts at most 10 MB, 200 PDF pages and the configured character budget. Reports above the input budget are rejected clearly; content is never silently truncated. Scanned PDFs require OCR, which is not implemented. Free-tier quota and model access are governed by the Groq account; rate-limit failures do not consume attempts. No paid-plan upgrade is performed.
+
+The [central demonstration rubric](server/src/config/rubric.js) contains ten criteria totaling 100 marks. These weights were supplied for the demonstration and are not claimed as the research paper's original institutional rubric. Each evaluation stores its rubric snapshot and model. AI marks are preliminary; the teacher controls final grades.
+
+A real provider smoke call and a complete uploaded-PDF → Groq → MongoDB → teacher grading → Socket.IO workflow have passed using synthetic reports. No personal academic report was used for those checks.
 
 ## Environment
 
-| File / variable | Default | Purpose |
-| --- | --- | --- |
-| `server/.env`: `NODE_ENV` | `development` | Environment; demo seeding refuses production |
-| `PORT` | `4000` | Express and Socket.IO port |
-| `CLIENT_ORIGIN` | `http://localhost:5173` | Exact frontend origin, without a trailing slash |
-| `MONGODB_URI` | Empty | Actual MongoDB connection, with database name |
-| `JWT_SECRET` | Empty in example | At least 32 characters; generated locally during initial setup |
-| `UPLOAD_DIR` | `uploads` | Private storage, resolved from the server directory |
-| `MAX_FILE_SIZE_MB` | `10` | Per-file limit, 1–50 MB |
-| `DEMO_PASSWORD` | Empty | Required only for the demo seed; at least 12 characters, at most 72 UTF-8 bytes |
-| `XAI_API_KEY`, `XAI_MODEL` | Empty | Reserved for later AI integration |
-| `client/.env`: `VITE_API_BASE_URL` | `/api` | API path; a full API URL may be used for a split-origin deployment |
+| Server variable | Purpose |
+| --- | --- |
+| `NODE_ENV` | `development`; production cookies require HTTPS |
+| `PORT` | API/socket port, default `4000` |
+| `CLIENT_ORIGIN` | Exact frontend origin, default `http://localhost:5173`; development also accepts its 127.0.0.1 alias |
+| `MONGODB_URI` | MongoDB connection URI, including a database name |
+| `JWT_SECRET` | Signing secret, at least 32 characters |
+| `UPLOAD_DIR` | Private storage, default `server/uploads` |
+| `DEMO_PASSWORD` | Optional development seed password override |
 
-The Vite development proxy forwards `/api` and `/socket.io` to port 4000. If you change `PORT`, update `client/vite.config.js` too. Never put database credentials, JWT secrets or AI keys in a `VITE_*` variable; these values are public browser code. Build output is a static frontend; production hosting and deployment are outside Phase 1. A future static host must provide SPA fallback to `index.html` and a same-origin API proxy, or set `VITE_API_BASE_URL` when building.
+`client/.env` uses `VITE_API_BASE_URL=/api`. Vite proxies `/api` and `/socket.io` to port 4000. If you change the backend port, update `client/vite.config.js`. Separate-origin hosting must configure CORS, credentialed requests and compatible same-site cookies; production deployment is outside this local demonstration.
 
-## Commands
+## Development and verification commands
 
-| Command | Result |
+| Command | Action |
 | --- | --- |
 | `npm run dev` | Start both services |
-| `npm run dev:client` | Frontend only |
-| `npm run dev:server` | Backend with Node watch mode |
-| `npm start --workspace server` | Backend without watch mode |
-| `npm run lint` | ESLint across frontend, backend and tests |
-| `npm test` | Backend infrastructure/model tests, then frontend tests |
-| `npm run build` | Backend syntax checks and Vite production build |
-| `npm run check` | Lint, tests and build |
-| `npx playwright install chromium` | Install the browser used for end-to-end checks |
-| `npm run test:e2e` | Desktop/mobile browser checks; starts services if needed |
-| `npm run preview --workspace client` | Preview the static production frontend; start Express separately |
-| `npm run seed` | Insert missing demo users without clearing existing data |
+| `npm run dev:client` | Start Vite only |
+| `npm run dev:server` | Start Express with watch mode |
+| `npm start --workspace server` | Start Express without watch mode |
+| `npm run seed` | Repeatable non-destructive demo seed |
+| `npm run check` | Lint, all backend/frontend tests, syntax and production build |
+| `npm run test:e2e` | Desktop/mobile browser regression and two-session checks |
+| `npx playwright install chromium` | Install the browser for end-to-end checks |
+| `npm run test:ai:smoke` | One real provider call using synthetic text; no database writes |
+| `npm run test:ai:workflow` | Full real provider, temporary database, grading and socket smoke test |
+| `npm audit --omit=dev` | Runtime dependency audit |
 
-Tests do not require MongoDB credentials. Backend HTTP tests open temporary local ports. Restricted execution environments must permit loopback connections. Browser tests reuse development services on the expected ports, or start and stop their own services.
+Unit/integration tests mock the external AI boundary. Database tests use unique `fyp_test_<UUID>` databases and remove only their own data. Browser tests create uniquely marked test users/groups and clean their exact records and files. The two explicit live AI commands use actual Groq requests and account quota.
 
-## Health endpoints
+Health endpoints: `GET /health`, `GET /api/health`, `GET /api/health/ready`. Liveness returns 200 while Express runs; readiness requires MongoDB and returns 503 when disconnected.
 
-| Endpoint | Meaning |
-| --- | --- |
-| `GET /health` | Liveness alias |
-| `GET /api/health` | HTTP 200 when the API is running; reports actual database and Socket.IO initialization state |
-| `GET /api/health/ready` | HTTP 200 with MongoDB connected; otherwise HTTP 503 |
-| `GET /api/auth/me` | JWT-protected current user; requires configured JWT secret, MongoDB and an active user |
+## Security and persistence behavior
 
-```powershell
-Invoke-RestMethod http://localhost:4000/api/health
-curl.exe -i http://localhost:4000/api/health/ready
-```
+- bcrypt password hashing; eight-hour JWT sessions in HttpOnly, SameSite cookies; Secure cookies in production. Tokens are not kept in browser localStorage.
+- Role and account status are checked on the backend. Group membership and supervisor assignment constrain private records and downloads.
+- Mutations require `X-FYP-Request: 1` and an allowed browser Origin. Authentication failures are rate-limited.
+- PDF/DOCX extension, MIME, signature/container and size checks; UUID filenames; private canonical storage paths; authenticated downloads. DOCX expansion is bounded.
+- Successful AI records are the attempt ledger, protected by an atomic project lease and a unique attempt index. Final submission locks further uploads/evaluations. Teacher marks are stored separately and finalization is conditional and immutable through the API.
+- Socket identity is verified from the same session. Only server-selected user rooms receive events. Records are persisted before emission, and unique recipient/event keys prevent duplicate notifications.
+- A database failure while saving a notification returns an explicit partial-operation error. An already-saved report is retained. Transport failures preserve the notification for recovery from MongoDB; no fabricated success or timer-generated event is used.
 
-Socket initialization indicates that the Socket.IO server is attached; it does **not** claim notification delivery has been implemented. Anonymous socket connections are rejected. Future authenticated connections join only a server-selected user room.
-
-## Demo seed
-
-After configuring MongoDB, set `DEMO_PASSWORD` in the ignored `server/.env`, then run:
-
-```powershell
-npm run seed
-npm run seed
-```
-
-Both runs are safe. The seed uses email-based upserts with `$setOnInsert`; it creates only missing accounts and preserves existing passwords, roles and records. It never deletes collections. Use a development database.
-
-| Role | Account |
-| --- | --- |
-| Student | `student.demo@fyp.local` |
-| Teacher | `teacher.demo@fyp.local` |
-| Admin | `admin.demo@fyp.local` |
-
-These are later-phase demo accounts. There is no sign-in endpoint or sign-in form in Phase 1. The seed cannot run without `MONGODB_URI` and `DEMO_PASSWORD`.
-
-## Structure
+## Structure and implementation reports
 
 ```text
-client/
-  public/                    Favicon
-  src/
-    components/              Layout, navigation, loading/error components
-    context/                 Authentication and health state
-    lib/                     API client and navigation definitions
-    pages/                   Overview, system status, module previews, 404
-    test/                    Frontend tests
-    App.jsx
-    main.jsx
-    styles.css
-  .env.example
-  vite.config.js
+client/src/
+  components/     Shared layout, forms, cards, notification bell and pagination
+  context/        Authentication, health and real-time notification state
+  lib/            API client, routing metadata and data hooks
+  pages/          Role dashboards and complete academic workflows
 server/
   src/
-    config/                  Environment, MongoDB and Multer
-    controllers/             Health and current-user responses
-    middleware/              JWT, role checks, validation, errors
-    models/                  Eight Mongoose models and shared field types
-    routes/                  API routing
-    services/                Password hashing and Socket.IO setup
-    utils/                   Application error type
-    app.js
-    index.js
-  scripts/                   Repeatable seed and syntax check
-  test/                      Infrastructure and schema tests
-  uploads/                   Private, ignored document storage
-  .env.example
+    config/ controllers/ middleware/ models/ routes/ services/ utils/
+  scripts/        Seed, syntax checks and real AI smoke commands
+  test/           Infrastructure, authentication, workflow, AI and socket tests
+  uploads/        Private ignored academic files
 docs/
-  research-paper.docx         Supplied functional specification
-  phase-1.md                 Scope, data relationships and open decisions
-  verification.md            Recorded verification results
-tests/e2e/                   Desktop and mobile browser checks
-eslint.config.js
-playwright.config.js
-package.json
-package-lock.json
-.gitignore
+  research-paper.docx
+  phase-1.md      Original foundation decisions
+  phase-2.md      Authentication and role dashboards
+  phase-3.md      Groups, proposals, documents, feedback and resources
+  phase-4.md      Assessment, rubric, attempts and teacher grading
+  phase-5.md      Notification architecture, APIs and verification
+  requests/      Supplied phase specifications
+tests/
+  e2e/ fixtures/
 ```
 
-## Boundaries for the next phase
-
-- JWT verification, role middleware and frontend session context exist; sign-in, registration and account management do not.
-- Schemas express ownership; later controllers must enforce group membership, teacher assignments and role permissions. Mongoose references alone do not authorize access.
-- Multer has private UUID-based storage, size limits and PDF/DOCX MIME/extension checks. There is no upload route or public static file serving. Before exposing uploads, inspect file contents and implement authorized downloads.
-- Project counters and a unique evaluation attempt index prepare the two-attempt rule. The evaluation service must reserve attempts atomically and define retry/failure policy. There is no live AI attempt workflow yet.
-- AI criteria are stored as a rubric snapshot and validated against ten criteria totaling 100. No rubric names, weights or Grok model were invented. Teacher final grades are stored separately from AI results.
-- The frontend follows the paper's local-storage token approach for the session foundation; assess production token protection before institutional deployment.
-- No tutorial/template application source was imported. Dependencies retain their own licenses. This repository is a local development foundation, not a production deployment.
+All eight original models and the established React/Express architecture are reused. No tutorial application source was imported. Phase 1's historical verification is retained in `docs/verification.md`; current phase reports describe the later implementation. No further implementation phase was started after Phase 5.

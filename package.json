@@ -22,7 +22,8 @@
     "test:e2e": "playwright test",
     "check": "npm run lint && npm test && npm run build",
     "seed": "npm run seed --workspace server",
-    "test:ai:smoke": "node server/scripts/ai-smoke.js"
+    "test:ai:smoke": "node server/scripts/ai-smoke.js",
+    "test:ai:workflow": "node server/scripts/live-workflow-smoke.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

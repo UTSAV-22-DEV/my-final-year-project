@@ -1,20 +1,20 @@
 # Phase 4 AI-assisted assessment
 
-The application uses the existing private Submission files, eight models, project access checks and role dashboards. Real xAI requests are implemented on the backend. No simulated application mode exists.
+The application uses the existing private Submission files, eight models, project access checks and role dashboards. Real Groq requests are implemented on the backend, following the updated provider instruction. No simulated application mode exists.
 
 ## Configuration and live verification
 
-Set `XAI_API_KEY` and `XAI_MODEL` in the ignored `server/.env`, then restart Express. There is **no default or invented model identifier**. Choose a model available to your xAI account that supports structured outputs.
+Set `GROQ_API_KEY` in the ignored `server/.env`, then restart Express. `GROQ_MODEL` defaults to the documented `openai/gpt-oss-20b` model. The supplied key and this model were verified with real requests.
 
-The service calls the official [xAI Chat Completions interface](https://docs.x.ai/developers/rest-api-reference/inference/chat-completions) at `https://api.x.ai/v1/chat/completions` with the configured model and a [structured JSON schema](https://docs.x.ai/developers/model-capabilities/text/structured-outputs). Only the server reads the API key.
+The service calls the official Groq endpoint `https://api.groq.com/openai/v1/chat/completions` with the configured model and a [structured JSON schema](https://console.groq.com/docs/structured-outputs). Only the server reads the API key. The model is listed in [Groq model documentation](https://console.groq.com/docs/models).
 
-`npm run test:ai:smoke` was attempted and reported **BLOCKED** because both environment values were empty. No real Grok request was made. It uses a synthetic report if configured and does not save an academic evaluation or consume a project attempt. Automated tests mock the external API boundary, not database persistence. Temporary browser assessment fixtures are explicitly named and removed after testing; they are not a demonstration mode.
+`npm run test:ai:smoke` passed with a real Groq response containing all ten criteria. `npm run test:ai:workflow` also passed: an actual uploaded PDF was extracted, evaluated by Groq, persisted in an isolated MongoDB database, finally submitted, teacher-adjusted and delivered through real private Socket.IO notifications. Original AI marks were preserved; temporary data was removed. Automated regression tests mock the external API boundary, and browser assessment fixtures are explicitly identified and cleaned up. No simulated application mode exists.
 
 ## Extraction and limits
 
 - PDF text is parsed from the actual stored bytes with pdf-parse; DOCX paragraphs are extracted with Mammoth.
 - Only authorized, backend-stored documents are eligible. No arbitrary paths or URLs are accepted.
-- Maximum AI input: the smaller of the upload limit and 10 MB; 200 PDF pages; 200,000 extracted characters.
+- Maximum AI input: the smaller of the upload limit and 10 MB; 200 PDF pages; the configured extracted-text budget (default 16,000 characters, configurable up to 200,000).
 - DOCX ZIP validation limits expanded content and entry count before extraction.
 - Empty, corrupt, encrypted/unreadable and unsupported files return meaningful errors.
 - OCR is not implemented. Scanned PDFs with no extractable text cannot be reliably evaluated and return an explicit OCR requirement.
@@ -68,4 +68,4 @@ Teacher criteria, comments, identity, source evaluation/report and finalization 
 
 `npm run check` passed with 61 backend tests, 6 frontend tests, lint, syntax checks and a production build. `npm run test:e2e` passed 10 desktop/mobile checks including actual final-submission and teacher-adjustment forms backed by temporary, explicitly identified assessment fixtures. Coverage includes extraction, invalid files, structured response validation, configured model use, failures without attempt consumption, first/second/third attempts, concurrent requests, ownership, final locks, teacher adjustment and immutable original AI scores.
 
-Real provider behavior, model availability and billing remain unverified until the required credentials are configured. The application does not claim grading accuracy or equivalence to faculty assessment.
+Real Groq access and the complete assessment/notification path have been verified with synthetic documents. Free-tier rate limits still apply and may reject large or repeated requests; failures do not consume attempts. The application does not claim grading accuracy or equivalence to faculty assessment.

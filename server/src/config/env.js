@@ -8,6 +8,8 @@ dotenv.config({ path: path.join(serverRoot, '.env'), quiet: true });
 export function readConfig(source = process.env) {
   const port = Number(source.PORT || 4000);
   const maxFileSizeMb = Number(source.MAX_FILE_SIZE_MB || 10);
+  const aiMaxTextChars = Number(source.AI_MAX_TEXT_CHARS || 16000);
+  if (!Number.isInteger(aiMaxTextChars) || aiMaxTextChars < 1000 || aiMaxTextChars > 200000) throw new Error('AI_MAX_TEXT_CHARS must be between 1000 and 200000.');
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error('PORT must be an integer between 1 and 65535.');
   }
@@ -30,8 +32,9 @@ export function readConfig(source = process.env) {
     jwtSecret,
     cookieName: 'fyp_session',
     sessionSeconds: 8 * 60 * 60,
-    xaiApiKey: source.XAI_API_KEY || '',
-    xaiModel: source.XAI_MODEL || '',
+    groqApiKey: source.GROQ_API_KEY || '',
+    groqModel: source.GROQ_MODEL || 'openai/gpt-oss-20b',
+    aiMaxTextChars,
     trustedOrigins: source.NODE_ENV === 'production' ? [clientOrigin] : [...new Set([clientOrigin, clientOrigin.replace('localhost', '127.0.0.1')])],
     uploadDir: path.resolve(serverRoot, source.UPLOAD_DIR || 'uploads'),
     maxFileSize: maxFileSizeMb * 1024 * 1024,

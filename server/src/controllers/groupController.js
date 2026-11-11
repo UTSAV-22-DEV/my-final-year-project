@@ -29,7 +29,7 @@ export async function createGroup(req, res) {
     if (!supervisor) throw new AppError(400, 'Select an active teacher.', 'VALIDATION_ERROR');
   }
   const project = await Project.create({ ...input, supervisor: supervisor?._id });
-  await notify(req, [...project.members, ...(supervisor ? [supervisor._id] : [])], { project: project._id, title: 'Project group assigned', message: `You have been assigned to ${project.teamName}.` });
+  await notify(req, [...project.members, ...(supervisor ? [supervisor._id] : [])], { type: 'group', project: project._id, eventKey: `group:${project._id}:created`, title: 'Project group assigned', message: `You have been assigned to ${project.teamName}.` });
   res.status(201).json({ project });
 }
 
@@ -42,7 +42,7 @@ export async function updateGroup(req, res) {
   await project.save();
   const added = project.members.filter((id) => !oldMembers.includes(String(id)));
   const removed = oldMembers.filter((id) => !project.members.some((member) => String(member) === id));
-  await notify(req, added, { project: project._id, title: 'Added to project group', message: `You have joined ${project.teamName}.` });
-  await notify(req, removed, { title: 'Group membership updated', message: `You have been removed from ${project.teamName}.` });
+  await notify(req, added, { type: 'group', project: project._id, eventKey: `group:${project._id}:added:${project.updatedAt.toISOString()}`, title: 'Added to project group', message: `You have joined ${project.teamName}.` });
+  await notify(req, removed, { type: 'group', eventKey: `group:${project._id}:removed:${project.updatedAt.toISOString()}`, title: 'Group membership updated', message: `You have been removed from ${project.teamName}.` });
   res.json({ project });
 }

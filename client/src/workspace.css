@@ -115,6 +115,36 @@ textarea { min-height: 110px; resize: vertical; }
 .dashboard-skeleton > section { background: #eeebf5; border-radius: 10px; min-height: 220px; grid-column: 1 / -1; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 .record-list .preview-actions { margin-top: 15px; }
+/* Maintain readable contrast on the light academic workspace surfaces. */
+.metric-card > span:not(.icon-tile), .metric-card > small { color: #6b7389; }
+.body-copy, .activity-list p, .notification-preview p { color: #73687f; }
+.record-badge { color: #6c5988; }
+.record-badge.active, .record-badge.approved, .record-badge.completed { color: #386e56; }
+.record-badge.pending, .record-badge.proposed, .record-badge.revision_requested, .record-badge.revision_required { color: #85632e; }
+.notification-bell { position: relative; }
+.notification-button { position: relative; }
+.notification-count { position: absolute; top: 0; right: -2px; min-width: 16px; height: 16px; border: 2px solid white; border-radius: 10px; background: #8973c2; color: white; font-size: 8px; line-height: 12px; text-align: center; padding: 0 2px; }
+.notification-dropdown { position: absolute; top: 45px; right: -30px; width: 365px; max-width: calc(100vw - 28px); z-index: 45; background: white; border: 1px solid #e5ddef; border-radius: 11px; box-shadow: 0 15px 50px #352c5420; overflow: hidden; }
+.notification-dropdown-heading { display: flex; align-items: center; justify-content: space-between; padding: 19px; border-bottom: 1px solid #f0eaf6; }
+.notification-dropdown-heading strong { font-size: 13px; font-weight: 600; }
+.dropdown-empty { padding: 28px 18px; text-align: center; font-size: 12px; color: #a493b6; margin: 0; }
+.dropdown-list { max-height: 420px; overflow-y: auto; }
+.dropdown-list article { display: flex; align-items: center; gap: 8px; padding: 15px 17px; border-bottom: 1px solid #f3edf7; }
+.is-unread { background: #fbf8ff; }
+.notification-open { flex: 1; min-width: 0; border: none; background: transparent; text-align: left; display: flex; flex-direction: column; gap: 7px; padding: 0; font: inherit; color: #73627f; }
+.notification-open strong { font-size: 12px; color: #514561; font-weight: 600; line-height: 1.5; }
+.notification-open span { font-size: 11px; line-height: 1.8; overflow-wrap: anywhere; }
+.notification-open time { font-size: 9px; color: #81738d; }
+.view-all-notifications { padding: 17px; display: block; font-size: 11px; color: #9278b2; text-align: center; border-top: 1px solid #eee6f4; }
+.notification-toolbar { display: flex; justify-content: space-between; gap: 15px; align-items: center; flex-wrap: wrap; }
+.notification-toolbar label { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #a38bb4; }
+.notification-toolbar > span { display: flex; align-items: center; gap: 7px; font-size: 10px; color: #b09bbf; }
+.inbox-list > article { display: flex; align-items: flex-start; gap: 15px; padding: 22px 15px; border-bottom: 1px solid #f1e9f7; border-radius: 7px; }
+.inbox-list .notification-open { gap: 9px; }
+.inbox-list .notification-open strong { font-size: 13px; }
+.inbox-list .notification-open span { font-size: 12px; }
+.inbox-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 760px) { .notification-dropdown { position: fixed; top: 60px; left: 14px; right: 14px; width: auto; } .inbox-list > article { gap: 10px; padding: 17px 8px; flex-wrap: wrap; } .inbox-actions { margin-left: 44px; } .inbox-list .notification-open { width: calc(100% - 50px); flex: auto; } }
 .workspace-form label { min-width: 0; }
 .workspace-form label > input:not([type=checkbox]), .workspace-form label > select, .workspace-form label > textarea { width: 100%; }
 .assessment-notice { display: flex; gap: 12px; align-items: flex-start; padding: 19px 22px; background: #f2effa; border: 1px solid #e8dff2; border-radius: 9px; color: #9b82b5; }

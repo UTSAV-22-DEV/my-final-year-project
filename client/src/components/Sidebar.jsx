@@ -26,7 +26,7 @@ export function Sidebar({ open, onClose }) {
         <div className="sidebar-bottom">
           <div className="foundation-card"><span className="foundation-symbol"><Layers3 size={18} aria-hidden="true" /></span><strong>A strong start.</strong><p>Your project workspace, one thoughtful step at a time.</p><NavLink to="/settings" onClick={onClose}>Explore the foundation <ArrowUpRight size={14} aria-hidden="true" /></NavLink></div>
           <SidebarLink item={settingsNavigation} onNavigate={onClose} />
-          <div className="sidebar-footer"><span className="status-dot green" />Academic workspace <span>Connected</span></div>
+          <div className="sidebar-footer"><span className="status-dot violet" />Academic workspace <span className="capitalize">{user?.role || 'Preview'}</span></div>
         </div>
       </aside>
     </>

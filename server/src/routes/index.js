@@ -15,6 +15,7 @@ import * as groups from '../controllers/groupController.js';
 import * as documents from '../controllers/documentController.js';
 import { upload } from '../config/upload.js';
 import * as assessment from '../controllers/evaluationController.js';
+import * as notifications from '../controllers/notificationController.js';
 
 export const apiRouter = Router();
 apiRouter.get('/health', health);
@@ -52,8 +53,11 @@ apiRouter.patch('/feedback/:id', authenticate, allowRoles('teacher'), validateOb
 apiRouter.get('/evaluations', authenticate, workspace.evaluations);
 apiRouter.get('/evaluations/config', authenticate, assessment.evaluationConfig);
 apiRouter.get('/evaluations/:id', authenticate, validateObjectId(), workspace.scopedRecord(Evaluation, 'evaluation'));
-apiRouter.get('/notifications', authenticate, workspace.notifications);
-apiRouter.patch('/notifications/:id/read', authenticate, validateObjectId(), workspace.readNotification);
+apiRouter.get('/notifications', authenticate, notifications.list);
+apiRouter.get('/notifications/unread-count', authenticate, notifications.unreadCount);
+apiRouter.patch('/notifications/read-all', authenticate, notifications.markAllRead);
+apiRouter.patch('/notifications/:id/read', authenticate, validateObjectId(), notifications.markRead);
+apiRouter.delete('/notifications/:id', authenticate, validateObjectId(), notifications.remove);
 apiRouter.get('/teacher/students', authenticate, allowRoles('teacher'), workspace.assignedStudents);
 apiRouter.get('/admin/users', authenticate, allowRoles('admin'), admin.users);
 apiRouter.post('/admin/users', authenticate, allowRoles('admin'), admin.createUser);

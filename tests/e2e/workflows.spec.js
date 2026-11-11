@@ -91,7 +91,7 @@ test('group, proposal, private report, feedback and resource workflows', async (
       const project = new mongoose.Types.ObjectId(projectId);
       const submitted = await fixtureConnection.collection('submissions').findOne({ project });
       const evaluation = new Evaluation({ project, submission: submitted._id, requestedBy: student.id, attempt: 1, status: 'completed',
-        model: 'automated-browser-fixture-not-Grok', rubricVersion, document: submitted.document, totalScore: 50, suggestions: 'Automated browser fixture for teacher review.', completedAt: new Date(), createdAt: new Date(), updatedAt: new Date(),
+        model: 'automated-browser-fixture-not-Groq', rubricVersion, document: submitted.document, totalScore: 50, suggestions: 'Automated browser fixture for teacher review.', completedAt: new Date(), createdAt: new Date(), updatedAt: new Date(),
         criteria: rubric.map((criterion) => ({ ...criterion, marks: criterion.maxMarks / 2, explanation: 'Temporary automated browser fixture.', strengths: ['Clear goals.'], weaknesses: ['More evidence needed.'], improvements: ['Add measured results.'] })) });
       await evaluation.validate();
       await fixtureConnection.collection('evaluations').insertOne(evaluation.toObject());

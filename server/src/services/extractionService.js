@@ -5,7 +5,7 @@ import { config } from '../config/env.js';
 import { documentPath, inspectDocx } from './documentService.js';
 import { AppError } from '../utils/AppError.js';
 
-export const maxExtractedCharacters = 200000;
+export const maxExtractedCharacters = config.aiMaxTextChars;
 export async function extractDocumentText(metadata) {
   const filename = documentPath(metadata.storageKey);
   let buffer;
@@ -38,6 +38,6 @@ export async function extractDocumentText(metadata) {
   }
   const text = result.replaceAll('\u0000', '').trim();
   if (!text) throw new AppError(422, metadata.mimeType === 'application/pdf' ? 'No extractable text was found. Scanned PDFs require OCR, which is not available.' : 'This document has no readable text.', 'NO_EXTRACTABLE_TEXT');
-  if (text.length > maxExtractedCharacters) throw new AppError(413, 'The extracted report exceeds 200,000 characters. Shorten the report before evaluation.', 'DOCUMENT_TOO_LARGE');
+  if (text.length > maxExtractedCharacters) throw new AppError(413, `The extracted report exceeds the configured ${maxExtractedCharacters.toLocaleString('en-US')}-character input budget. Upload a shorter report; content is never silently truncated.`, 'DOCUMENT_TOO_LARGE');
   return text;
 }
