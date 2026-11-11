@@ -18,8 +18,7 @@ export async function dashboard(req, res) {
     const [students, teachers] = await Promise.all([User.countDocuments({ role: 'student' }), User.countDocuments({ role: 'teacher' })]);
     counts = { students, teachers, projects: allProjects.length, activeProjects: allProjects.filter((project) => project.status === 'active').length };
   } else if (role === 'teacher') {
-    const reviewed = await Feedback.find({ ...scope, submission: { $exists: true } }).distinct('submission');
-    const pendingReviews = await Submission.countDocuments({ ...scope, _id: { $nin: reviewed } });
+    const pendingReviews = await Submission.countDocuments({ ...scope, reviewStatus: 'pending' });
     counts = { projects: allProjects.length, pendingProposals, pendingReviews, students: new Set(allProjects.flatMap((project) => project.members.map(String))).size };
   } else {
     const submittedProjects = await Submission.find({ ...scope, stage: 'final' }).distinct('project');

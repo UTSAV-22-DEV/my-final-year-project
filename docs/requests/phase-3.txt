@@ -1,0 +1,359 @@
+You are continuing development of the existing AI-Assisted Final Year Project Management System.
+
+Phase 1 foundation and Phase 2 authentication/dashboards have been implemented.
+
+Your current assignment is PHASE 3: PROJECT MANAGEMENT, PROPOSAL WORKFLOW, GROUP MANAGEMENT, DOCUMENT HANDLING AND TEACHER FEEDBACK.
+
+This is an extension of the existing application.
+
+CRITICAL RULES:
+- Inspect the entire existing implementation before modifying it.
+- Preserve working authentication and role-based authorization.
+- Reuse all existing Mongoose models and frontend components.
+- Do not recreate the application.
+- Do not replace the existing technology stack.
+- Do not implement AI evaluation yet. That belongs to Phase 4.
+- Implement real backend functionality, not just frontend mockups.
+- Do not ask me to write code.
+- Run tests and fix errors autonomously.
+
+# PART 1: EXISTING CODEBASE INSPECTION
+
+Inspect:
+- Existing User model.
+- Project model.
+- Proposal model.
+- Submission model.
+- Feedback model.
+- Resource model.
+- Notification model.
+- Existing authentication middleware.
+- Existing authorization middleware.
+- Existing dashboard pages.
+- Existing API routes and services.
+- Existing tests.
+
+Identify reusable functionality.
+
+Before making changes, prepare a short internal implementation plan.
+
+Do not create duplicate models or endpoints.
+
+# PART 2: PROJECT AND GROUP MANAGEMENT
+
+Implement complete project and group management.
+
+ADMIN CAPABILITIES:
+
+1. Create project groups.
+2. Assign a group name.
+3. Add existing student accounts to a group.
+4. Prevent a student from being assigned to multiple active project groups unless the existing design explicitly permits it.
+5. Assign a teacher/supervisor.
+6. Update group membership.
+7. Remove students from groups.
+8. View all groups and projects.
+9. View project status.
+
+TEACHER CAPABILITIES:
+
+1. View assigned groups.
+2. View group members.
+3. View associated project proposals.
+4. View submissions.
+5. Access authorized project information.
+
+STUDENT CAPABILITIES:
+
+1. View own group.
+2. View group members.
+3. View assigned supervisor.
+4. View associated project information.
+5. View project status.
+
+All group membership and teacher assignment operations must be persisted in MongoDB.
+
+Create appropriate backend endpoints and enforce authorization.
+
+# PART 3: PROJECT PROPOSAL MANAGEMENT
+
+Implement proposal submission.
+
+Student proposal form:
+
+- Project title
+- Abstract
+- Problem statement
+- Objectives
+- Proposed methodology
+- Project domain
+- Technologies
+- Team information
+- Preferred supervisor (optional)
+
+Implement:
+
+1. Create proposal.
+2. View own proposals.
+3. Edit proposals when permitted.
+4. Submit for review.
+5. View proposal status.
+6. View teacher/admin comments.
+7. Resubmit proposals requiring revision.
+
+Proposal status values:
+
+- Pending
+- Approved
+- Rejected
+- Revision Required
+
+Review operations must be restricted to authorized teachers/admins according to the existing project workflow.
+
+Store:
+- Proposal creator
+- Group/project association where applicable
+- Reviewer
+- Review comments
+- Status
+- Submission timestamp
+- Last updated timestamp
+
+Maintain an audit trail of meaningful status changes.
+
+Prevent unauthorized students from editing other students' proposals.
+
+# PART 4: DOCUMENT MANAGEMENT
+
+Implement document upload and download using the existing Multer configuration.
+
+Supported formats:
+- PDF
+- DOCX
+
+Features:
+
+1. Student uploads project documents.
+2. Document is associated with a project/group.
+3. Store file metadata in MongoDB.
+4. Store files in backend-managed private storage.
+5. Validate file extensions and actual MIME/signature where practical.
+6. Configure a reasonable maximum file size.
+7. Generate safe unique filenames.
+8. Prevent path traversal.
+9. Support document replacement/resubmission.
+10. Permit authorized teachers to download assigned project documents.
+11. Permit students to access only their own/group documents.
+12. Provide appropriate error messages for missing and invalid files.
+
+Document metadata should contain:
+- Original filename
+- Stored filename
+- File type
+- File size
+- Uploader
+- Project/group association
+- Upload timestamp
+- Submission status
+
+Never expose unrestricted public filesystem paths.
+
+Downloads must go through authenticated backend endpoints with authorization checks.
+
+Do not claim full document version control unless previous files are actually preserved.
+
+# PART 5: TEACHER FEEDBACK
+
+Implement a feedback system.
+
+Teacher can:
+
+1. Open an assigned project.
+2. View submitted documents.
+3. Provide feedback.
+4. Categorize feedback as General, Technical or Documentation.
+5. Mark a submission as Approved, Revision Required or Reviewed.
+6. Update feedback where appropriate.
+
+Student can:
+
+1. View feedback associated with their project.
+2. View the teacher who provided it.
+3. View the associated submission.
+4. View feedback timestamp.
+5. See whether revision is required.
+
+Feedback must be persisted and restricted to the relevant project participants.
+
+# PART 6: RESOURCE SHARING
+
+Implement a simple resource-sharing facility.
+
+Teacher can:
+- Upload supporting materials.
+- Associate resources with an assigned project or group.
+- Add resource title and description.
+- Make resources available to authorized students.
+
+Students can:
+- View resources available to their group.
+- Download authorized resources.
+
+Use the existing Multer and Resource infrastructure.
+
+# PART 7: FRONTEND IMPLEMENTATION
+
+Implement functional pages using the existing visual system.
+
+STUDENT:
+- My Projects
+- Project Details
+- My Group
+- Submit Proposal
+- Proposal Status
+- Documents
+- Upload Document
+- Feedback
+- Resources
+
+TEACHER:
+- Assigned Projects
+- Project Details
+- Proposal Reviews
+- Document Submissions
+- Submission Details
+- Give Feedback
+- Shared Resources
+
+ADMIN:
+- Group Management
+- Create Group
+- Manage Group Members
+- Assign Supervisors
+- All Projects
+- Project Overview
+
+Every form must have:
+- Input validation
+- Loading state
+- Success feedback
+- Error feedback
+- Appropriate empty state
+
+Every button must perform its advertised operation.
+
+Use actual API responses and database records. Do not hardcode dashboard counts or create fake successful submissions.
+
+# PART 8: NOTIFICATIONS
+
+Integrate with the existing Notification model.
+
+Create notifications for:
+- Proposal submission.
+- Proposal approval/rejection/revision.
+- Document submission.
+- Teacher feedback.
+- Resource availability.
+- Group or supervisor assignment.
+
+If Socket.IO is already configured, emit relevant events to authenticated users.
+
+Persist notifications in MongoDB.
+
+If live MongoDB is unavailable, clearly report integration tests as blocked rather than substituting fake persistence.
+
+# PART 9: BACKEND QUALITY
+
+Implement:
+- Request validation.
+- Consistent API responses.
+- Centralized error handling.
+- Authorization checks.
+- Pagination for lists where appropriate.
+- Proper HTTP status codes.
+- Safe file handling.
+- Duplicate prevention.
+- Ownership verification.
+
+Avoid unnecessary dependencies.
+
+# PART 10: TESTING
+
+Write and run tests for:
+
+1. Admin creates group.
+2. Admin adds students.
+3. Admin assigns teacher.
+4. Student views own group.
+5. Student cannot view another group's private data.
+6. Student submits proposal.
+7. Student views proposal status.
+8. Teacher reviews assigned proposal.
+9. Unauthorized teacher cannot review another teacher's proposal.
+10. Student uploads valid PDF.
+11. Invalid file type rejected.
+12. Oversized file rejected.
+13. Unauthorized document download rejected.
+14. Teacher downloads assigned project document.
+15. Teacher provides feedback.
+16. Student views feedback.
+17. Teacher shares resource.
+18. Student downloads authorized resource.
+19. Notification is persisted and delivered.
+20. Frontend production build.
+
+Retain and run all existing Phase 1 and Phase 2 tests.
+
+# ACCEPTANCE CRITERIA
+
+Phase 3 is complete only when:
+
+- Admin can create and manage groups.
+- Teacher assignments persist.
+- Students can submit proposals.
+- Teachers can review proposals.
+- Proposal status changes persist.
+- Students can upload PDF/DOCX documents.
+- Authorized teachers can access submissions.
+- Teachers can provide feedback.
+- Students can view feedback.
+- Teachers can share resources.
+- Students can download authorized resources.
+- Notifications are persisted and delivered where infrastructure is available.
+- Backend authorization prevents unauthorized access.
+- Existing authentication remains functional.
+- Production build succeeds.
+- Tests pass.
+
+# EXECUTION STRATEGY
+
+Implement sequentially:
+
+A. Project/group management
+B. Proposal workflow
+C. Document upload/download
+D. Teacher feedback
+E. Resource sharing
+F. Notifications
+G. Frontend integration
+H. Testing and bug fixing
+
+Create a Git checkpoint only after successful verification.
+
+Do not proceed to Phase 4.
+
+# FINAL REPORT
+
+Provide:
+1. Features implemented.
+2. Existing components/models reused.
+3. New API endpoints.
+4. Database integration status.
+5. File handling and security measures.
+6. Tests executed and results.
+7. Frontend build status.
+8. Remaining blockers.
+9. Git checkpoint.
+10. Exact startup commands.
+
+Begin implementing Phase 3 now.

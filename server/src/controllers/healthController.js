@@ -1,4 +1,5 @@
 import { databaseStatus } from '../config/database.js';
+import { config } from '../config/env.js';
 
 export function health(req, res) {
   res.set('Cache-Control', 'no-store').json({
@@ -8,6 +9,7 @@ export function health(req, res) {
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
     database: databaseStatus(),
+    uploads: { maxFileSize: config.maxFileSize, accepted: ['.pdf', '.docx'] },
     realtime: { status: req.app.get('io') ? 'initialized' : 'unavailable', authentication: 'required' },
   });
 }

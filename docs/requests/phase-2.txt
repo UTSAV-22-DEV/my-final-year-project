@@ -1,0 +1,275 @@
+You are continuing development of the AI-Assisted Final Year Project Management System.
+
+Phase 1 has been completed. Now implement PHASE 2: Authentication, Authorization and Role-Based Dashboards.
+
+IMPORTANT:
+- Inspect the existing codebase before making changes.
+- Reuse the models, components, routes and configurations created in Phase 1.
+- Do not recreate the project.
+- Do not break Phase 1 functionality.
+- Implement the complete functionality, not just UI mockups.
+- Execute tests and fix errors autonomously.
+
+# OBJECTIVE
+
+Implement a working authentication system with three roles:
+
+1. Student
+2. Teacher
+3. Admin
+
+Each role must have its own dashboard, navigation and authorized operations.
+
+# PART 1: BACKEND AUTHENTICATION
+
+Implement:
+
+1. User registration.
+2. User login.
+3. Password hashing with bcrypt.
+4. JWT generation and verification.
+5. Logout handling.
+6. Current authenticated user endpoint: GET /api/auth/me.
+7. Input validation.
+8. Duplicate email prevention.
+9. Consistent API error responses.
+10. Appropriate authentication middleware.
+
+User model should contain:
+- Name
+- Email
+- Password hash
+- Role
+- Student ID (optional)
+- Department (optional)
+- Assigned projects (where applicable)
+- Account status
+- Created timestamp
+
+Never return password hashes in API responses.
+
+# PART 2: ROLE-BASED AUTHORIZATION
+
+Implement reusable backend authorization middleware.
+
+Permissions:
+
+STUDENT:
+- Access own dashboard.
+- View own profile.
+- View own projects.
+- Create project proposals.
+- View own proposal statuses.
+- Access own submissions and feedback.
+- View own notifications.
+
+TEACHER:
+- Access teacher dashboard.
+- View assigned projects.
+- View students associated with assigned projects.
+- Review proposals.
+- Provide feedback.
+- Access authorized student submissions.
+- View evaluation results for assigned projects.
+
+ADMIN:
+- Access administrator dashboard.
+- View all users.
+- Create student and teacher accounts.
+- Activate/deactivate accounts.
+- Assign teachers to projects.
+- View all project records.
+
+Enforce permissions on the backend, not just by hiding frontend buttons.
+
+A student must never access another student's private records by changing an API URL.
+
+Prevent public self-registration with the Admin role. Admin accounts must be provisioned through a secure seed script or authorized admin operation.
+
+# PART 3: FRONTEND AUTHENTICATION
+
+Build a polished login page.
+
+Include:
+- Email field
+- Password field
+- Show/hide password
+- Validation
+- Loading state
+- Error feedback
+- Responsive design
+- Application branding
+
+Implement:
+- Auth context/provider
+- Protected routes
+- Role-protected routes
+- Session restoration
+- Logout
+- Automatic redirect based on role
+
+Use the existing frontend architecture.
+
+Use the safest practical token handling supported by the existing project. Prefer HttpOnly secure cookies if compatible with the current architecture. If localStorage is retained, document the security limitation and never claim it is production-secure.
+
+# PART 4: STUDENT DASHBOARD
+
+Create a professional dashboard containing:
+
+- Welcome section.
+- Total projects.
+- Pending proposals.
+- Approved projects.
+- Pending submissions.
+- Recent activity.
+- Notifications preview.
+- Project status cards.
+- Quick actions.
+
+Include navigation for:
+- Dashboard
+- My Projects
+- Proposals
+- Documents
+- AI Evaluation
+- Feedback
+- Notifications
+- Profile
+
+The pages that belong to later phases can initially show honest empty states or clearly marked coming-soon states. Do not create fake working functionality.
+
+# PART 5: TEACHER DASHBOARD
+
+Create a dashboard containing:
+
+- Assigned projects count.
+- Pending proposal reviews.
+- Pending document reviews.
+- Recently updated projects.
+- Recent student activity.
+
+Navigation:
+- Dashboard
+- Assigned Projects
+- Proposal Reviews
+- Submissions
+- Feedback
+- Resources
+- Notifications
+- Profile
+
+# PART 6: ADMIN DASHBOARD
+
+Create a dashboard containing:
+
+- Total students.
+- Total teachers.
+- Total projects.
+- Active projects.
+- User management table.
+- Teacher assignment section.
+- Recent administrative activity.
+
+Navigation:
+- Dashboard
+- Students
+- Teachers
+- Projects
+- Groups
+- Assignments
+- Notifications
+- Settings
+
+# PART 7: DEMO DATA
+
+Implement a repeatable seed script with the following demo accounts:
+
+Student:
+student@fyp.demo
+
+Teacher:
+teacher@fyp.demo
+
+Admin:
+admin@fyp.demo
+
+Use a common development-only demo password and document it clearly in README.
+
+Important:
+- Seed scripts must be idempotent.
+- Never seed production environments.
+- Never expose passwords in frontend source code.
+- Ensure all three users can log in.
+- Give the demo student at least one sample project only if the necessary project structure exists.
+
+# PART 8: UI QUALITY
+
+Use a consistent visual system:
+- Professional academic SaaS appearance.
+- Clean typography.
+- Consistent spacing.
+- Reusable cards, tables, badges and buttons.
+- Responsive sidebar.
+- Functional mobile navigation.
+- Loading skeletons.
+- Empty states.
+- Error states.
+
+Do not introduce excessive animations.
+
+# PART 9: TESTING
+
+Write and run tests for:
+
+1. Successful login.
+2. Invalid password.
+3. Unknown email.
+4. Duplicate registration.
+5. JWT verification.
+6. Student accessing student endpoint.
+7. Student blocked from admin endpoint.
+8. Teacher blocked from admin endpoint.
+9. Admin access to authorized administrative endpoint.
+10. Unauthorized access without a token.
+11. Inactive account restrictions.
+12. Frontend production build.
+
+Fix all failures.
+
+# ACCEPTANCE CRITERIA
+
+Phase 2 is complete only when:
+
+- All three demo users can log in.
+- Each role reaches the correct dashboard.
+- Logout works.
+- Session restoration works.
+- Protected routes work.
+- Backend authorization works.
+- Unauthorized cross-role API requests are rejected.
+- The dashboards display actual database-derived data where available.
+- Existing Phase 1 infrastructure remains functional.
+- Frontend production build succeeds.
+- Tests pass.
+
+# AUTONOMY
+
+You may create and modify source files, install compatible dependencies, execute tests and fix errors.
+
+Do not ask me to write code.
+
+Ask me only when a genuine external dependency or credential is required.
+
+Do not start Phase 3 yet.
+
+At completion, provide:
+1. Features implemented.
+2. Files modified.
+3. API endpoints created.
+4. Demo credentials.
+5. Tests and build results.
+6. Remaining blockers.
+7. Exact commands to run the application.
+8. Git checkpoint status.
+
+Start implementing Phase 2 now.

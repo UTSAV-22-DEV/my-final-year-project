@@ -1,4 +1,5 @@
 import { User, Project } from '../models/index.js';
+import mongoose from 'mongoose';
 import { accountInput, text } from '../middleware/accountValidation.js';
 import { hashPassword } from '../services/passwordService.js';
 import { safeUser } from '../services/sessionService.js';
@@ -46,6 +47,7 @@ export async function setAccountStatus(req, res) {
 }
 
 export async function assignTeacher(req, res) {
+  if (!mongoose.isObjectIdOrHexString(req.body?.teacherId)) throw new AppError(400, 'Select a valid teacher ID.', 'INVALID_ID');
   const project = await Project.findById(req.params.id);
   if (!project) throw new AppError(404, 'This project was not found.', 'NOT_FOUND');
   const teacher = await User.findOne({ _id: req.body?.teacherId, role: 'teacher', isActive: true });

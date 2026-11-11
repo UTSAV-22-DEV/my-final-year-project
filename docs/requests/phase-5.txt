@@ -1,0 +1,283 @@
+Continue developing the existing AI-Assisted Final Year Project Management System.
+
+Implement PHASE 5: REAL-TIME NOTIFICATION SYSTEM USING SOCKET.IO.
+
+Phases 1–4 should already exist.
+
+IMPORTANT:
+- Inspect existing Socket.IO initialization and Notification model.
+- Reuse existing notification infrastructure.
+- Do not recreate the backend or frontend.
+- Preserve all existing application functionality.
+- Integrate notifications with actual project, proposal, submission, feedback and AI evaluation events.
+- Do not generate fake notification events.
+- Do not ask me to write code.
+- Run tests and fix errors autonomously.
+
+# PART 1: EXISTING IMPLEMENTATION INSPECTION
+
+Inspect:
+- Notification Mongoose model
+- Socket.IO initialization
+- Express server initialization
+- Authentication middleware
+- Proposal controllers
+- Document submission controllers
+- Feedback services
+- Resource sharing services
+- AI evaluation services
+- Final grading services
+- Frontend authentication context
+- Existing notification UI
+
+Reuse existing functionality and avoid duplicate implementations.
+
+# PART 2: SOCKET.IO AUTHENTICATION
+
+Implement authenticated Socket.IO connections.
+
+Requirements:
+
+1. Authenticate socket connections using the application's existing authentication strategy.
+2. Verify the user's identity on connection.
+3. Reject unauthenticated connections.
+4. Place authenticated users into server-controlled private rooms.
+5. Do not allow clients to subscribe to arbitrary user IDs.
+6. Support multiple browser sessions for the same user.
+7. Handle disconnects and reconnects.
+8. Prevent unauthorized users from receiving private notifications.
+9. Reuse existing JWT or cookie authentication consistently.
+
+A student must only receive notifications intended for that student or their authorized project group.
+
+A teacher must only receive notifications intended for that teacher.
+
+# PART 3: NOTIFICATION GENERATION
+
+Create a centralized notification service.
+
+It must:
+1. Accept recipient, title, message, event type and relevant resource reference.
+2. Persist notification records in MongoDB.
+3. Emit the event through Socket.IO after successful persistence.
+4. Avoid duplicate notifications when the same business event is retried.
+5. Handle database failures appropriately.
+6. Avoid exposing sensitive document content.
+
+Use the existing Notification model where possible.
+
+# PART 4: BUSINESS EVENT INTEGRATION
+
+Integrate notification creation into actual application workflows.
+
+Generate notifications for:
+
+PROPOSALS:
+- Proposal submitted → assigned teacher.
+- Proposal approved → relevant student/group.
+- Proposal rejected → relevant student/group.
+- Revision requested → relevant student/group.
+
+DOCUMENTS:
+- Document uploaded → assigned teacher.
+- Document resubmitted → assigned teacher.
+
+FEEDBACK:
+- Teacher feedback added → relevant student/group.
+- Submission marked for revision → relevant student/group.
+
+RESOURCES:
+- New teacher resource uploaded → relevant students/group.
+
+GROUP MANAGEMENT:
+- Teacher assigned → teacher and group members.
+- Student added to group → relevant student.
+
+AI EVALUATION:
+- AI evaluation completed → student.
+- Final submission received → assigned teacher.
+- Teacher finalized grade → relevant student/group.
+
+Only generate notifications after the corresponding operation has successfully completed.
+
+Use the correct recipients derived from existing project and group relationships.
+
+# PART 5: NOTIFICATION API
+
+Implement or complete:
+
+GET /api/notifications
+GET /api/notifications/unread-count
+PATCH /api/notifications/:id/read
+PATCH /api/notifications/read-all
+DELETE /api/notifications/:id
+
+Requirements:
+- Authenticated access.
+- User ownership validation.
+- Pagination.
+- Unread filtering.
+- Correct HTTP status codes.
+- No access to another user's notification records.
+
+# PART 6: FRONTEND NOTIFICATION EXPERIENCE
+
+Implement a complete notification experience.
+
+HEADER:
+- Notification bell icon.
+- Unread count badge.
+- Dropdown preview.
+- Latest notifications.
+- Mark as read.
+- View all notifications.
+
+NOTIFICATION PAGE:
+- Full notification list.
+- Read/unread distinction.
+- Event type indicators.
+- Timestamp.
+- Relevant project or submission reference.
+- Mark individual notification as read.
+- Mark all as read.
+- Delete notification.
+- Pagination.
+- Empty state.
+
+When a user clicks a notification:
+- Navigate to the relevant project, proposal, submission, feedback or evaluation page where supported.
+- Mark it as read.
+- Never navigate to an unauthorized resource.
+
+# PART 7: REAL-TIME UI UPDATES
+
+Use Socket.IO client integration.
+
+Requirements:
+1. Establish connection after successful authentication.
+2. Disconnect during logout.
+3. Listen for authenticated notification events.
+4. Update the unread count immediately.
+5. Add new notifications without refreshing the page.
+6. Update the notification dropdown.
+7. Handle reconnects.
+8. Prevent duplicate events from producing duplicate UI entries.
+9. Fetch persisted notifications after reconnection or session restoration.
+
+The database remains the source of truth. Socket.IO is the real-time delivery mechanism.
+
+# PART 8: TESTING
+
+Test:
+
+1. Authenticated socket connection.
+2. Unauthenticated socket rejection.
+3. Private room assignment.
+4. Notification persistence.
+5. Real-time notification delivery.
+6. Multiple sessions for one user.
+7. Student cannot receive another student's private notifications.
+8. Teacher notification delivery.
+9. Unread count.
+10. Mark one notification as read.
+11. Mark all notifications as read.
+12. Delete notification.
+13. Pagination.
+14. Duplicate business event prevention.
+15. Reconnection and notification recovery.
+16. Proposal event integration.
+17. Feedback event integration.
+18. Document event integration.
+19. AI evaluation event integration.
+20. Frontend production build.
+
+Retain all existing tests.
+
+# PART 9: DEMONSTRATION REQUIREMENTS
+
+Make it possible to demonstrate real-time notifications using two separate browser sessions.
+
+Example:
+
+SESSION 1:
+- Log in as student.
+- Keep the student dashboard open.
+
+SESSION 2:
+- Log in as teacher.
+- Approve the student's proposal or submit feedback.
+
+EXPECTED:
+- Student receives a notification without refreshing the browser.
+- Notification is persisted in MongoDB.
+- Unread count increases.
+- Refreshing the browser retains the notification.
+- Opening the notification marks it as read.
+- Unread count decreases.
+
+Repeat a similar demonstration for a finalized grade.
+
+Do not simulate Socket.IO delivery using local frontend timers or fabricated events.
+
+# PART 10: ERROR HANDLING AND SECURITY
+
+Ensure:
+- Socket authentication is enforced.
+- Notification ownership is checked.
+- Private events are not broadcast globally.
+- Sensitive document data is not included in messages.
+- Notification persistence precedes live emission.
+- Reconnection does not lose persisted notifications.
+- Duplicate event processing is controlled.
+- Database errors are handled correctly.
+
+# ACCEPTANCE CRITERIA
+
+Phase 5 is complete only when:
+
+- Socket.IO authentication works.
+- Notifications are persisted.
+- Notifications are delivered in real time.
+- All relevant business workflows generate notifications.
+- Unread counts update live.
+- Read/unread functionality works.
+- Users cannot access other users' notifications.
+- Reconnection restores notification history.
+- Two-browser-session demonstration succeeds.
+- Frontend build succeeds.
+- Existing tests continue passing.
+
+# EXECUTION STRATEGY
+
+Implement sequentially:
+
+A. Socket authentication
+B. Centralized notification service
+C. Business event integration
+D. Notification APIs
+E. Frontend notification UI
+F. Real-time updates
+G. Security and testing
+H. End-to-end verification
+
+Create a Git checkpoint after successful verification.
+
+Do not start another implementation phase.
+
+# FINAL REPORT
+
+Provide:
+1. Socket.IO architecture.
+2. Authentication mechanism.
+3. Notification events implemented.
+4. API endpoints.
+5. Database persistence status.
+6. Real-time delivery test results.
+7. Two-session browser test results.
+8. Security measures.
+9. Full test results.
+10. Production build status.
+11. Remaining blockers.
+12. Git checkpoint.
+
+Begin implementing Phase 5 now.

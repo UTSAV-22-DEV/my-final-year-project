@@ -6,6 +6,8 @@ const feedbackSchema = new mongoose.Schema({
   submission: reference('Submission', false),
   author: reference('User'),
   message: { type: String, required: true, trim: true, maxlength: 10000 },
+  category: { type: String, enum: ['general', 'technical', 'documentation'], default: 'general' },
+  submissionStatus: { type: String, enum: ['approved', 'revision_required', 'reviewed'] },
 }, modelOptions);
 feedbackSchema.index({ project: 1, createdAt: -1 });
 

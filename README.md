@@ -1,6 +1,6 @@
 # AI-Assisted Final Year Project Management System
 
-**Current implementation: Phase 2 authentication and role dashboards.** See [Phase 2 setup, credentials, APIs and verification](docs/phase-2.md). The Phase 1 description below is retained as foundation documentation.
+**Current implementation: Phase 3 project, group, document and feedback workflows.** See [Phase 3 features and APIs](docs/phase-3.md) and [Phase 2 setup, credentials and authentication](docs/phase-2.md). The Phase 1 description below is retained as historical foundation documentation.
 
 A shared academic workspace for students, teachers and administrators. **Phase 1 provides the application foundation only.** Academic workflows, sign-in and AI evaluation are deliberately reserved for later phases.
 

@@ -12,11 +12,26 @@ import { AssignmentsPage } from './pages/AssignmentsPage.jsx';
 import { UserManagementPage } from './pages/UserManagementPage.jsx';
 import { RecordsPage, ProjectDetailPage, ProfilePage } from './pages/RecordsPage.jsx';
 import { useAuth } from './context/AuthContext.jsx';
+import { GroupsPage } from './pages/GroupsPage.jsx';
+import { ProposalsPage, DocumentsPage, FeedbackPage, ResourcesPage, SubmissionDetailPage } from './pages/WorkflowPages.jsx';
 
 export function App() {
   return <Routes><Route path="login" element={<AuthPage />} /><Route path="register" element={<AuthPage registration />} /><Route element={<ProtectedRoute />}><Route element={<Layout />}><Route index element={<HomeRedirect />} /><Route path="foundation" element={<OverviewPage />} />
-    {['student', 'teacher', 'admin'].map((role) => <Route key={role} element={<ProtectedRoute roles={[role]} />}><Route path={`${role}/dashboard`} element={<DashboardPage />} /><Route path={`${role}/projects`} element={<RecordsPage kind="projects" />} /><Route path={`${role}/projects/:id`} element={<ProjectDetailPage />} /><Route path={`${role}/proposals`} element={<RecordsPage kind="proposals" />} /><Route path={`${role}/documents`} element={<RecordsPage kind="submissions" />} /><Route path={`${role}/feedback`} element={<RecordsPage kind="feedback" />} /><Route path={`${role}/evaluations`} element={<RecordsPage kind="evaluations" />} /><Route path={`${role}/notifications`} element={<RecordsPage kind="notifications" />} /><Route path={`${role}/profile`} element={<ProfilePage />} /><Route path={`${role}/resources`} element={<ModulePage title="Resource library" subtitle="Academic materials and guidance." icon={LibraryBig} description="Resource sharing will be connected in the next phase." features={['Authorized materials', 'Project-specific guidance']} />} /></Route>)}
-    <Route element={<ProtectedRoute roles={['admin']} />}><Route path="admin/students" element={<UserManagementPage role="student" />} /><Route path="admin/teachers" element={<UserManagementPage role="teacher" />} /><Route path="admin/groups" element={<RecordsPage kind="projects" />} /><Route path="admin/assignments" element={<AssignmentsPage />} /><Route path="admin/settings" element={<StatusPage />} /></Route>
+    {['student', 'teacher', 'admin'].map((role) => <Route key={role} element={<ProtectedRoute roles={[role]} />}>
+      <Route path={`${role}/dashboard`} element={<DashboardPage />} />
+      <Route path={`${role}/projects`} element={<RecordsPage kind="projects" />} />
+      <Route path={`${role}/group`} element={<RecordsPage kind="projects" />} />
+      <Route path={`${role}/projects/:id`} element={<ProjectDetailPage />} />
+      <Route path={`${role}/proposals`} element={<ProposalsPage />} />
+      <Route path={`${role}/documents`} element={<DocumentsPage />} />
+      <Route path={`${role}/documents/:id`} element={<SubmissionDetailPage />} />
+      <Route path={`${role}/feedback`} element={<FeedbackPage />} />
+      <Route path={`${role}/evaluations`} element={<RecordsPage kind="evaluations" />} />
+      <Route path={`${role}/notifications`} element={<RecordsPage kind="notifications" />} />
+      <Route path={`${role}/profile`} element={<ProfilePage />} />
+      <Route path={`${role}/resources`} element={<ResourcesPage />} />
+    </Route>)}
+    <Route element={<ProtectedRoute roles={['admin']} />}><Route path="admin/students" element={<UserManagementPage role="student" />} /><Route path="admin/teachers" element={<UserManagementPage role="teacher" />} /><Route path="admin/groups" element={<GroupsPage />} /><Route path="admin/assignments" element={<AssignmentsPage />} /><Route path="admin/settings" element={<StatusPage />} /></Route>
     <Route path="projects" element={<ModulePage title="Projects & proposals" subtitle="Turn your team's ideas into a well-supported project." icon={FolderKanban} description="A shared project space will connect student groups with their supervisors, proposals, and progress." features={['Student groups and assigned supervisors', 'Proposal submission and review status', 'Clear project ownership and role-based access']} />} />
     <Route path="documents" element={<ModulePage title="Documents" subtitle="Keep every report connected to its project." icon={Files} description="Students and supervisors will exchange academic documents and keep feedback close to the work." features={['PDF and DOCX documents', 'Authorized access and private file storage', 'Report replacement and final submission']} />} />
     <Route path="evaluations" element={<ModulePage title="AI evaluations" subtitle="Helpful perspective. Human judgment at the center." icon={Sparkles} description="Grok will provide preliminary rubric-based feedback so students can improve their reports before a teacher's final review." features={['Ten weighted criteria totaling 100 marks', 'Two AI-assisted attempts before final submission', 'Teacher review and control over final grades']} />} />

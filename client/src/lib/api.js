@@ -1,4 +1,5 @@
 const apiBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
+export const apiUrl = (path) => `${apiBase}${path}`;
 
 export class ApiError extends Error {
   constructor(message, status, code) {

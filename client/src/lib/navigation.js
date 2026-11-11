@@ -22,7 +22,7 @@ export function roleNavigation(role) {
   ] : [
     ['dashboard', 'Dashboard', LayoutDashboard], ['projects', 'My Projects', FolderKanban], ['proposals', 'Proposals', ClipboardCheck],
     ['documents', 'Documents', Files], ['evaluations', 'AI Evaluation', Sparkles], ['feedback', 'Feedback', MessageSquareText],
-    ['notifications', 'Notifications', Bell], ['profile', 'Profile', UserRound],
+    ['group', 'My Group', Users], ['resources', 'Resources', LibraryBig], ['notifications', 'Notifications', Bell], ['profile', 'Profile', UserRound],
   ];
   return items.map(([path, label, icon]) => ({ path: `/${role}/${path}`, label, icon }));
 }
