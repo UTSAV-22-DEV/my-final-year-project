@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+server/uploads/*
+!server/uploads/.gitkeep
+playwright-report/
+test-results/
+.DS_Store
+Thumbs.db
+.vscode/
+*.pem
+*.key

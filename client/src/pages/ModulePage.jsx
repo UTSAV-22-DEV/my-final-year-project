@@ -1,0 +1,6 @@
+import { Link } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Check, LockKeyhole } from 'lucide-react';
+
+export function ModulePage({ title, subtitle, icon: Icon, description, features }) {
+  return <div className="page-stack"><div className="page-heading"><div><div className="eyebrow"><span className="eyebrow-line" />WORKSPACE MODULE</div><h1>{title}</h1><p>{subtitle}</p></div><span className="phase-label">Planned workflow</span></div><section className="panel module-preview"><span className="module-preview-icon"><Icon size={34} strokeWidth={1.5} aria-hidden="true" /></span><span className="soft-tag">FOUNDATION PREVIEW</span><h2>A space for {title.toLowerCase()}.</h2><p>{description}</p><div className="feature-preview-list">{features.map((feature) => <div key={feature}><Check size={15} aria-hidden="true" /><span>{feature}</span></div>)}</div><div className="module-preview-notice"><LockKeyhole size={17} aria-hidden="true" /><span>This workflow is reserved for a later phase. No academic records are loaded in this preview.</span></div><div className="preview-actions"><Link to="/" className="button secondary"><ArrowLeft size={16} aria-hidden="true" />Back to overview</Link><Link to="/settings" className="button primary">View system status<ArrowRight size={16} aria-hidden="true" /></Link></div></section></div>;
+}
