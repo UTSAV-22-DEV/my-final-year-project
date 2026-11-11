@@ -22,7 +22,7 @@ function checkedList(value) {
   return value.map((item) => checkedText(item, 2000));
 }
 export function validateEvaluationResponse(value, criteriaConfig = rubric) {
-  if (!value || !Array.isArray(value.criteria) || value.criteria.length !== criteriaConfig.length) throw new AppError(502, 'The AI must return all ten rubric criteria.', 'INVALID_AI_RESPONSE');
+  if (!value || !Array.isArray(value.criteria) || value.criteria.length !== criteriaConfig.length || value.criteria.some((criterion) => !criterion || typeof criterion !== 'object' || Array.isArray(criterion))) throw new AppError(502, 'The AI must return all ten rubric criteria.', 'INVALID_AI_RESPONSE');
   const names = new Set(value.criteria.map((criterion) => criterion.name));
   if (names.size !== criteriaConfig.length) throw new AppError(502, 'The AI returned duplicate rubric criteria.', 'INVALID_AI_RESPONSE');
   const criteria = criteriaConfig.map((criterion) => {

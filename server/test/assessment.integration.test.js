@@ -102,6 +102,15 @@ test('teacher score validation rejects marks above the rubric maximum', async ()
   const criteria = rubric.map((criterion) => ({ name: criterion.name, marks: criterion.maxMarks })); criteria[0].marks = 6;
   await write('post', `/api/projects/${group._id}/final-grade`, teacherCookie).send({ criteria, comment: 'Invalid score test.' }).expect(400);
 });
+
+test('malformed teacher criterion entries return validation errors without changing the grade', async () => {
+  for (const entry of [null, 'invalid', 1, []]) {
+    const criteria = rubric.map((criterion) => ({ name: criterion.name, marks: criterion.maxMarks })); criteria[0] = entry;
+    const response = await write('post', `/api/projects/${group._id}/final-grade`, teacherCookie).send({ criteria, comment: 'Malformed criterion test.' }).expect(400);
+    assert.equal(response.body.error.code, 'VALIDATION_ERROR');
+    assert.equal((await Project.findById(group._id)).finalGrade, undefined);
+  }
+});
 test('assigned teacher adjusts and finalizes marks while original AI marks remain immutable', async () => {
   const criteria = rubric.map((criterion, index) => ({ name: criterion.name, marks: criterion.maxMarks - (index === 0 ? 1 : 0) }));
   const response = await write('post', `/api/projects/${group._id}/final-grade`, teacherCookie).send({ criteria, comment: 'Teacher reviewed the final report.', totalScore: 1 }).expect(200);
@@ -110,4 +119,33 @@ test('assigned teacher adjusts and finalizes marks while original AI marks remai
   assert.ok(response.body.project.finalGrade.finalizedBy); assert.ok(response.body.project.finalGrade.finalizedAt);
   await write('post', `/api/projects/${group._id}/final-grade`, teacherCookie).send({ criteria, comment: 'Second finalization.' }).expect(409);
   await write('post', `/api/projects/${group._id}/final-grade`, studentCookie).send({ criteria, comment: 'Unauthorized.' }).expect(403);
+});
+
+test('late proposal edits, resubmissions and reviews cannot reopen a finally submitted or graded project', async () => {
+  const proposal = await Proposal.findOne({ project: group._id });
+  const finalGrade = (await Project.findById(group._id)).finalGrade.toObject();
+  const fields = { title: proposal.title, abstract: proposal.abstract, problemStatement: 'Resources are fragmented.', objectives: ['Improve discovery'], methodology: 'Prototype and evaluate.', domain: 'Education', technologies: ['React'] };
+  // Fixture states reproduce a proposal that remained open when the report was
+  // finally submitted. Only this UUID-isolated test database is changed.
+  try {
+    for (const projectStatus of ['submitted', 'completed']) {
+      await Project.updateOne({ _id: group._id }, { $set: { status: projectStatus } });
+      for (const status of ['draft', 'revision_requested', 'pending']) {
+        await Proposal.updateOne({ _id: proposal._id }, { $set: { ...fields, status } });
+        if (status === 'pending') {
+          await write('patch', `/api/proposals/${proposal._id}/review`, teacherCookie).send({ status: 'approved', comment: 'Late review must not reopen a final project.' }).expect(409);
+        } else {
+          const response = await write('post', `/api/proposals/${proposal._id}/submit`, studentCookie);
+          assert.equal(response.status, 409, `Late submission returned ${response.status}; project status became ${(await Project.findById(group._id)).status}.`);
+          await write('patch', `/api/proposals/${proposal._id}`, studentCookie).send(fields).expect(409);
+        }
+        assert.equal((await Proposal.findById(proposal._id)).status, status);
+        const saved = await Project.findById(group._id);
+        assert.equal(saved.status, projectStatus); assert.deepEqual(saved.finalGrade.toObject(), finalGrade);
+      }
+    }
+  } finally {
+    await Proposal.updateOne({ _id: proposal._id }, { $set: { status: proposal.status } });
+    await Project.updateOne({ _id: group._id }, { $set: { status: 'completed' } });
+  }
 });

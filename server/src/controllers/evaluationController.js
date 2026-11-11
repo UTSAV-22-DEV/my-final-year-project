@@ -39,7 +39,7 @@ export async function finalizeGrade(req, res) {
   const original = await Evaluation.findOne({ project: project._id, status: 'completed' }).sort({ attempt: -1 });
   if (!original) throw new AppError(409, 'An original AI evaluation is required for this review.', 'EVALUATION_REQUIRED');
   const submitted = req.body?.criteria;
-  if (!Array.isArray(submitted) || submitted.length !== 10 || new Set(submitted.map((entry) => entry.name)).size !== 10) throw new AppError(400, 'Provide all ten distinct teacher criterion scores.', 'VALIDATION_ERROR');
+  if (!Array.isArray(submitted) || submitted.length !== 10 || submitted.some((entry) => !entry || typeof entry !== 'object' || Array.isArray(entry)) || new Set(submitted.map((entry) => entry.name)).size !== 10) throw new AppError(400, 'Provide all ten distinct teacher criterion scores.', 'VALIDATION_ERROR');
   const criteria = original.criteria.map((criterion) => {
     const adjusted = submitted.find((entry) => entry.name === criterion.name);
     if (!adjusted || typeof adjusted.marks !== 'number' || !Number.isFinite(adjusted.marks) || adjusted.marks < 0 || adjusted.marks > criterion.maxMarks) throw new AppError(400, 'Teacher marks must be within each criterion weight.', 'VALIDATION_ERROR');

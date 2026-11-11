@@ -72,6 +72,8 @@ test('separate student and teacher sessions receive persisted live feedback and 
     await teacherPage.getByLabel('Teacher comments', { exact: true }).fill('Final report reviewed; teacher adjustment is recorded.');
     await teacherPage.getByRole('button', { name: 'Finalize grade', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Notifications, 1 unread', exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Notifications, 1 unread', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Notifications, 1 unread', exact: true }).click();
     await page.getByRole('button', { name: /^Final grade available/ }).click();
     await expect(page).toHaveURL(/student\/evaluations\?project=/);

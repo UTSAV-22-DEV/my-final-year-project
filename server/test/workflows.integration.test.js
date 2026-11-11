@@ -121,6 +121,18 @@ test('resubmission keeps the previous report and increments its revision', async
   await request(app).get(`/api/submissions/${submission._id}/download`).set('Cookie', memberCookie).expect(200);
   submission = response.body.submission;
 });
+
+test('students upload valid DOCX reports and assigned teachers download the original file', async () => {
+  const bytes = makeDocx('Introduction\nMethodology and implementation.');
+  const response = await write('post', `/api/projects/${group._id}/submissions`, memberCookie).attach('document', bytes, { filename: 'report.docx', contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }).expect(201);
+  const report = response.body.submission;
+  assert.equal(report.document.originalName, 'report.docx');
+  assert.equal(report.revision, 3);
+  const downloaded = await request(app).get(`/api/submissions/${report._id}/download`).set('Cookie', teacherCookie).buffer(true).parse((response, done) => {
+    const chunks = []; response.on('data', (chunk) => chunks.push(chunk)); response.on('end', () => done(null, Buffer.concat(chunks))); response.on('error', done);
+  }).expect(200).expect('Content-Disposition', /report.docx/);
+  assert.deepEqual(downloaded.body, bytes);
+});
 test('teacher feedback is categorized, updates review status and is visible to the group', async () => {
   const response = await write('post', '/api/feedback', teacherCookie).send({ projectId: group._id, submissionId: submission._id, category: 'documentation', submissionStatus: 'revision_required', message: 'Add a clear methodology diagram.' }).expect(201);
   feedback = response.body.feedback;

@@ -5,6 +5,10 @@ import { text } from '../middleware/accountValidation.js';
 import { notify } from '../services/notificationService.js';
 import { AppError } from '../utils/AppError.js';
 
+function assertProjectOpen(project) {
+  if (['submitted', 'completed'].includes(project.status)) throw new AppError(409, 'Proposal changes are locked after final submission.', 'PROJECT_FINALIZED');
+}
+
 function list(value, name, max = 1000) {
   const values = typeof value === 'string' ? value.split('\n').filter((entry) => entry.trim()) : value;
   if (!Array.isArray(values) || !values.length || values.length > 30) throw new AppError(400, `${name} must have 1–30 entries.`, 'VALIDATION_ERROR');
@@ -33,7 +37,7 @@ export async function createProposal(req, res) {
   const proposal = await Proposal.create({ ...input, project: project._id, submittedBy: req.user._id, status,
     submittedAt: status === 'pending' ? new Date() : undefined, auditTrail: [{ status, actor: req.user._id }] });
   if (status === 'pending') {
-    await Project.updateOne({ _id: project._id }, { $set: { status: 'proposed' } });
+    await Project.updateOne({ _id: project._id, status: { $nin: ['submitted', 'completed'] } }, { $set: { status: 'proposed' } });
     await notify(req, project.supervisor ? [project.supervisor] : [], { type: 'proposal', project: project._id, resourceType: 'proposal', resourceId: proposal._id, eventKey: `proposal:${proposal._id}:submitted:${proposal.auditTrail.length}`, title: 'New proposal to review', message: `${project.teamName}: ${proposal.title}.` });
   }
   res.status(201).json({ proposal });
@@ -43,6 +47,7 @@ export async function editProposal(req, res) {
   const proposal = await Proposal.findById(req.params.id);
   if (!proposal) throw new AppError(404, 'This proposal was not found.', 'NOT_FOUND');
   const project = await accessibleProject(req.user, proposal.project);
+  assertProjectOpen(project);
   if (String(proposal.submittedBy) !== String(req.user._id)) throw new AppError(403, 'Only the proposal creator may edit it.', 'FORBIDDEN');
   if (!['draft', 'revision_requested'].includes(proposal.status)) throw new AppError(409, 'Only drafts and proposals requiring revision can be edited.', 'INVALID_STATE');
   const input = await fields(req.body, project);
@@ -55,6 +60,7 @@ export async function submitProposal(req, res) {
   const existing = await Proposal.findById(req.params.id);
   if (!existing) throw new AppError(404, 'This proposal was not found.', 'NOT_FOUND');
   const project = await accessibleProject(req.user, existing.project);
+  assertProjectOpen(project);
   if (String(existing.submittedBy) !== String(req.user._id)) throw new AppError(403, 'Only the proposal creator may submit it.', 'FORBIDDEN');
   if (!['draft', 'revision_requested'].includes(existing.status)) throw new AppError(409, 'This proposal cannot be submitted again.', 'INVALID_STATE');
   // Validate full content again when an old draft enters review.
@@ -63,7 +69,7 @@ export async function submitProposal(req, res) {
     $set: { status: 'pending', submittedAt: new Date() }, $push: { auditTrail: { status: 'pending', actor: req.user._id, at: new Date(), comment: 'Submitted for review' } },
   }, { returnDocument: 'after', runValidators: true });
   if (!proposal) throw new AppError(409, 'The proposal changed. Reload to continue.', 'INVALID_STATE');
-  await Project.updateOne({ _id: project._id }, { $set: { status: 'proposed' } });
+  await Project.updateOne({ _id: project._id, status: { $nin: ['submitted', 'completed'] } }, { $set: { status: 'proposed' } });
   await notify(req, project.supervisor ? [project.supervisor] : [], { type: 'proposal', project: project._id, resourceType: 'proposal', resourceId: proposal._id, eventKey: `proposal:${proposal._id}:submitted:${proposal.auditTrail.length}`, title: 'Proposal submitted', message: `${project.teamName}: ${proposal.title}.` });
   res.json({ proposal });
 }
@@ -72,6 +78,7 @@ export async function reviewProposal(req, res) {
   const existing = await Proposal.findById(req.params.id);
   if (!existing) throw new AppError(404, 'This proposal was not found.', 'NOT_FOUND');
   const project = await accessibleProject(req.user, existing.project);
+  assertProjectOpen(project);
   if (!['approved', 'rejected', 'revision_requested'].includes(req.body?.status)) throw new AppError(400, 'Choose an approval, rejection or revision decision.', 'VALIDATION_ERROR');
   const comment = text(req.body.comment, 'Review comment', { max: 5000 });
   const proposal = await Proposal.findOneAndUpdate({ _id: existing._id, status: 'pending' }, {
@@ -79,7 +86,7 @@ export async function reviewProposal(req, res) {
     $push: { auditTrail: { status: req.body.status, actor: req.user._id, at: new Date(), comment } },
   }, { returnDocument: 'after', runValidators: true });
   if (!proposal) throw new AppError(409, 'This proposal is not pending review.', 'INVALID_STATE');
-  await Project.updateOne({ _id: project._id }, { $set: proposal.status === 'approved' ? { status: 'active', title: proposal.title } : { status: 'proposed' } });
+  await Project.updateOne({ _id: project._id, status: { $nin: ['submitted', 'completed'] } }, { $set: proposal.status === 'approved' ? { status: 'active', title: proposal.title } : { status: 'proposed' } });
   await notify(req, project.members, { type: 'proposal', project: project._id, resourceType: 'proposal', resourceId: proposal._id, eventKey: `proposal:${proposal._id}:review:${proposal.auditTrail.length}`, title: 'Proposal reviewed', message: `${project.teamName}: ${proposal.status.replaceAll('_', ' ')}.` });
   res.json({ proposal });
 }
