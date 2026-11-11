@@ -9,13 +9,13 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiRequest(path, { token, ...options } = {}) {
+export async function apiRequest(path, { token, timeoutMs = 6000, ...options } = {}) {
   const headers = new Headers(options.headers);
   headers.set('Accept', 'application/json');
   headers.set('X-FYP-Request', '1');
   if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   if (token) headers.set('Authorization', `Bearer ${token}`);
-  const timeout = AbortSignal.timeout(6000);
+  const timeout = AbortSignal.timeout(timeoutMs);
   const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
   const response = await fetch(`${apiBase}${path}`, { ...options, headers, signal, credentials: 'include' });
   if (response.status === 204) return null;

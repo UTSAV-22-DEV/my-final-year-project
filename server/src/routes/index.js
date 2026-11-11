@@ -14,6 +14,7 @@ import * as proposals from '../controllers/proposalController.js';
 import * as groups from '../controllers/groupController.js';
 import * as documents from '../controllers/documentController.js';
 import { upload } from '../config/upload.js';
+import * as assessment from '../controllers/evaluationController.js';
 
 export const apiRouter = Router();
 apiRouter.get('/health', health);
@@ -49,6 +50,7 @@ apiRouter.get('/feedback/:id', authenticate, validateObjectId(), workspace.scope
 apiRouter.post('/feedback', authenticate, allowRoles('teacher'), workspace.createFeedback);
 apiRouter.patch('/feedback/:id', authenticate, allowRoles('teacher'), validateObjectId(), workspace.updateFeedback);
 apiRouter.get('/evaluations', authenticate, workspace.evaluations);
+apiRouter.get('/evaluations/config', authenticate, assessment.evaluationConfig);
 apiRouter.get('/evaluations/:id', authenticate, validateObjectId(), workspace.scopedRecord(Evaluation, 'evaluation'));
 apiRouter.get('/notifications', authenticate, workspace.notifications);
 apiRouter.patch('/notifications/:id/read', authenticate, validateObjectId(), workspace.readNotification);
@@ -68,3 +70,6 @@ apiRouter.get('/submissions/:id/download', authenticate, validateObjectId(), doc
 apiRouter.get('/resources', authenticate, documents.resources);
 apiRouter.post('/projects/:id/resources', authenticate, allowRoles('teacher'), validateObjectId(), documents.authorizeProjectUpload, upload.single('document'), documents.uploadResource);
 apiRouter.get('/resources/:id/download', authenticate, validateObjectId(), documents.downloadResource);
+apiRouter.post('/submissions/:id/evaluate', authenticate, allowRoles('student'), validateObjectId(), assessment.evaluate);
+apiRouter.post('/projects/:id/final-submission', authenticate, allowRoles('student'), validateObjectId(), assessment.finalSubmit);
+apiRouter.post('/projects/:id/final-grade', authenticate, allowRoles('teacher'), validateObjectId(), assessment.finalizeGrade);

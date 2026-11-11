@@ -5,6 +5,8 @@ import path from 'node:path';
 import mongoose from 'mongoose';
 import { config } from '../../server/src/config/env.js';
 import { makePdf, makeDocx } from '../fixtures/documents.js';
+import { Evaluation } from '../../server/src/models/Evaluation.js';
+import { rubric, rubricVersion } from '../../server/src/config/rubric.js';
 
 test('group, proposal, private report, feedback and resource workflows', async ({ page }) => {
   test.setTimeout(120000);
@@ -82,6 +84,37 @@ test('group, proposal, private report, feedback and resource workflows', async (
     await page.goto('/student/resources');
     const resourceDownload = page.waitForEvent('download'); await page.getByRole('link', { name: 'Download resource', exact: true }).click();
     expect((await resourceDownload).suggestedFilename()).toBe('guide.docx');
+    // External AI is mocked only through an explicitly named, temporary browser
+    // fixture. No demonstration mode or fake evaluator is added to the application.
+    const fixtureConnection = await mongoose.createConnection(config.mongoUri).asPromise();
+    try {
+      const project = new mongoose.Types.ObjectId(projectId);
+      const submitted = await fixtureConnection.collection('submissions').findOne({ project });
+      const evaluation = new Evaluation({ project, submission: submitted._id, requestedBy: student.id, attempt: 1, status: 'completed',
+        model: 'automated-browser-fixture-not-Grok', rubricVersion, document: submitted.document, totalScore: 50, suggestions: 'Automated browser fixture for teacher review.', completedAt: new Date(), createdAt: new Date(), updatedAt: new Date(),
+        criteria: rubric.map((criterion) => ({ ...criterion, marks: criterion.maxMarks / 2, explanation: 'Temporary automated browser fixture.', strengths: ['Clear goals.'], weaknesses: ['More evidence needed.'], improvements: ['Add measured results.'] })) });
+      await evaluation.validate();
+      await fixtureConnection.collection('evaluations').insertOne(evaluation.toObject());
+      await fixtureConnection.collection('projects').updateOne({ _id: project, teamName: marker }, { $set: { aiAttemptsUsed: 1 } });
+    } finally { await fixtureConnection.close(); }
+    await page.goto(`/student/evaluations?project=${projectId}`);
+    await expect(page.getByRole('heading', { name: 'Preliminary AI assessment', exact: true })).toBeVisible();
+    const reports = await (await page.request.get('/api/submissions')).json();
+    const report = reports.submissions.find((submission) => submission.project._id === projectId);
+    await page.getByRole('combobox', { name: 'Project document', exact: true }).selectOption(report._id);
+    await page.getByRole('checkbox', { name: /I confirm the selected report/ }).check();
+    await page.getByRole('button', { name: 'Submit final report', exact: true }).click();
+    await expect(page.getByText('Final report submitted for teacher assessment.', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click(); await expect(page).toHaveURL(/login/);
+    await signIn(teacher.email); await page.goto(`/teacher/evaluations?project=${projectId}`);
+    await page.getByRole('spinbutton', { name: 'Teacher marks for Abstract and Summary', exact: true }).fill('4');
+    await page.getByLabel('Teacher comments', { exact: true }).fill('Reviewed the final report and adjusted the abstract score.');
+    await page.getByRole('button', { name: 'Finalize grade', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Teacher-finalized grade', exact: true })).toBeVisible();
+    await expect(page.getByText('51.5 / 100', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click(); await expect(page).toHaveURL(/login/);
+    await signIn(student.email); await page.goto(`/student/evaluations?project=${projectId}`);
+    await expect(page.getByRole('heading', { name: 'Teacher-finalized grade', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   } finally {
     // Remove only this test's exact IDs and unique marker; never clear the application DB.
@@ -93,7 +126,7 @@ test('group, proposal, private report, feedback and resource workflows', async (
           const records = await connection.collection(collection).find({ project }).toArray();
           for (const record of records) if (/^[a-zA-Z0-9_-]+\.(pdf|docx)$/.test(record.document.storageKey)) await fs.unlink(path.join(config.uploadDir, record.document.storageKey)).catch(() => {});
         }
-        for (const collection of ['proposals', 'submissions', 'feedback', 'resources', 'notifications']) await connection.collection(collection).deleteMany({ project });
+        for (const collection of ['proposals', 'submissions', 'feedback', 'resources', 'evaluations', 'notifications']) await connection.collection(collection).deleteMany({ project });
         await connection.collection('projects').deleteOne({ _id: project, teamName: marker });
       }
       await connection.collection('notifications').deleteMany({ message: { $regex: marker } });

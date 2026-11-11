@@ -18,6 +18,7 @@ export function roleNavigation(role) {
   ] : role === 'teacher' ? [
     ['dashboard', 'Dashboard', LayoutDashboard], ['projects', 'Assigned Projects', FolderKanban], ['proposals', 'Proposal Reviews', ClipboardCheck],
     ['documents', 'Submissions', Files], ['feedback', 'Feedback', MessageSquareText], ['resources', 'Resources', LibraryBig],
+    ['evaluations', 'Evaluation Review', Sparkles],
     ['notifications', 'Notifications', Bell], ['profile', 'Profile', UserRound],
   ] : [
     ['dashboard', 'Dashboard', LayoutDashboard], ['projects', 'My Projects', FolderKanban], ['proposals', 'Proposals', ClipboardCheck],

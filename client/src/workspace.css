@@ -115,6 +115,31 @@ textarea { min-height: 110px; resize: vertical; }
 .dashboard-skeleton > section { background: #eeebf5; border-radius: 10px; min-height: 220px; grid-column: 1 / -1; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 .record-list .preview-actions { margin-top: 15px; }
+.workspace-form label { min-width: 0; }
+.workspace-form label > input:not([type=checkbox]), .workspace-form label > select, .workspace-form label > textarea { width: 100%; }
+.assessment-notice { display: flex; gap: 12px; align-items: flex-start; padding: 19px 22px; background: #f2effa; border: 1px solid #e8dff2; border-radius: 9px; color: #9b82b5; }
+.assessment-notice svg { flex-shrink: 0; margin-top: 3px; }
+.assessment-notice p { font-size: 12px; line-height: 1.9; margin: 0; }
+.assessment-notice strong { display: block; font-weight: 600; margin-top: 7px; }
+.assessment-summary { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+.assessment-summary article { display: flex; flex-direction: column; gap: 15px; align-items: flex-start; padding: 22px; background: white; border: 1px solid #e8e1f1; border-radius: 9px; }
+.assessment-summary article > span { font-size: 11px; color: #a58cb7; }
+.assessment-summary article > strong { font-size: 23px; font-weight: 600; color: #79628e; }
+.criterion-list > details { border-top: 1px solid #eee7f4; padding: 17px 0; font-size: 12px; color: #a384b6; }
+.criterion-list summary { cursor: pointer; display: flex; justify-content: space-between; gap: 15px; line-height: 1.8; color: #896c9e; }
+.criterion-list summary strong { white-space: nowrap; }
+.criterion-list p { margin-top: 17px; line-height: 1.9; }
+.criterion-list h4 { font-size: 12px; font-weight: 600; margin: 19px 0 8px; }
+.criterion-list ul { margin: 0; padding-left: 20px; list-style: disc; }
+.criterion-list li { line-height: 1.8; margin-bottom: 7px; }
+.final-score { color: #7d9d7a; font-size: 23px; white-space: nowrap; }
+.grade-table { display: flex; flex-direction: column; gap: 8px; }
+.grade-table > label, .grade-table > div { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; font-size: 12px; color: #9d83b1; padding: 12px 0; border-bottom: 1px solid #eee6f5; }
+.grade-table small { display: block; margin-top: 6px; font-size: 10px; color: #b4a3c0; }
+.grade-table input { width: 85px; flex-shrink: 0; }
+.workspace-form .confirm-choice { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; line-height: 1.8; }
+.confirm-choice input { margin-top: 3px; accent-color: #9d7bbc; }
+@media (max-width: 980px) { .assessment-summary { grid-template-columns: 1fr 1fr; } }
 .member-picker { border: 1px solid #e9e3f2; border-radius: 9px; padding: 18px; max-height: 300px; overflow: auto; }
 .member-picker legend { font-size: 12px; font-weight: 600; padding: 0 7px; color: #8c7a9f; }
 .member-picker > p { font-size: 10px; color: #a296af; line-height: 1.8; }

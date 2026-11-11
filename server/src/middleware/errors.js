@@ -1,4 +1,5 @@
 import multer from 'multer';
+import { AppError } from '../utils/AppError.js';
 
 export function notFound(req, res) {
   res.status(404).json({ error: { code: 'NOT_FOUND', message: 'This endpoint does not exist.' } });
@@ -30,7 +31,7 @@ export function errorHandler(error, req, res, next) {
   if (status >= 500) {
     // Do not log error messages that might contain credentials or connection URIs.
     console.error(`[server] ${error.name || 'Error'} (${status})`);
-    message = status === 503 ? 'This service is not configured or is temporarily unavailable.' : 'An unexpected server error occurred.';
+    if (!(error instanceof AppError)) message = status === 503 ? 'This service is not configured or is temporarily unavailable.' : 'An unexpected server error occurred.';
   }
   res.status(status).json({ error: { code, message } });
 }

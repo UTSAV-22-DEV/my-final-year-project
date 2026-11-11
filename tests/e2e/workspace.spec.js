@@ -20,7 +20,7 @@ test('workspace loads, routes navigate, and live services report accurately', as
   await page.screenshot({ path: `test-results/workspace-${isMobile ? 'mobile' : 'desktop'}.png`, fullPage: true });
   if (isMobile) await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await page.getByRole('link', { name: 'AI Evaluation', exact: true }).click();
-  await expect(page.getByText(/AI grading is reserved for Phase 4/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'AI-assisted evaluation', exact: true })).toBeVisible();
   await page.goto('/settings');
   await expect(page.getByRole('heading', { level: 1, name: 'System status' })).toBeVisible();
   await page.getByRole('button', { name: 'Refresh status' }).click();

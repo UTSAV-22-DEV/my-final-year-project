@@ -15,6 +15,9 @@ function mockApi({ signedIn = true, offline = false } = {}) {
     if (url.endsWith('/health')) { if (offline) throw new Error('Offline'); return response(health); }
     if (url.endsWith('/auth/login')) return response({ user });
     if (url.endsWith('/student/dashboard')) return response({ counts: { projects: 0, pendingProposals: 0, approvedProjects: 0, pendingSubmissions: 0 }, projects: [], activity: [], notifications: [] });
+    if (url.includes('/projects')) return response({ projects: [] });
+    if (url.includes('/submissions')) return response({ submissions: [] });
+    if (url.endsWith('/evaluations/config')) return response({ configured: false });
     return response({ evaluations: [] });
   });
   vi.stubGlobal('fetch', fetchMock);
@@ -30,7 +33,7 @@ describe('authenticated workspace', () => {
     expect(await screen.findByRole('heading', { level: 1, name: /Great projects start here/ })).toBeInTheDocument();
     expect(await screen.findByText('Setup required')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('link', { name: 'AI Evaluation', exact: true }));
-    expect(await screen.findByText(/AI grading is reserved for Phase 4/)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'AI-assisted evaluation', exact: true })).toBeInTheDocument();
   });
   it('preserves backend health failure and retry feedback', async () => {
     const fetchMock = mockApi({ offline: true }); mount();

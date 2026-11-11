@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { modelOptions, reference } from './shared.js';
+import { fileSchema, modelOptions, reference } from './shared.js';
 
 const criterionSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, maxlength: 200 },
@@ -9,6 +9,10 @@ const criterionSchema = new mongoose.Schema({
     validate: { validator(value) { return value <= this.maxMarks; }, message: 'Marks cannot exceed criterion weight.' },
   },
   suggestions: { type: String, maxlength: 5000 },
+  explanation: { type: String, maxlength: 5000 },
+  strengths: [{ type: String, maxlength: 2000 }],
+  weaknesses: [{ type: String, maxlength: 2000 }],
+  improvements: [{ type: String, maxlength: 2000 }],
 }, { _id: false });
 
 const evaluationSchema = new mongoose.Schema({
@@ -22,6 +26,9 @@ const evaluationSchema = new mongoose.Schema({
   totalScore: { type: Number, min: 0, max: 100 },
   suggestions: { type: String, maxlength: 10000 },
   failureCode: { type: String, maxlength: 100 },
+  rubricVersion: String,
+  document: { type: fileSchema },
+  completedAt: Date,
 }, modelOptions);
 
 evaluationSchema.pre('validate', function () {

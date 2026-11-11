@@ -14,6 +14,7 @@ import { RecordsPage, ProjectDetailPage, ProfilePage } from './pages/RecordsPage
 import { useAuth } from './context/AuthContext.jsx';
 import { GroupsPage } from './pages/GroupsPage.jsx';
 import { ProposalsPage, DocumentsPage, FeedbackPage, ResourcesPage, SubmissionDetailPage } from './pages/WorkflowPages.jsx';
+import { EvaluationPage } from './pages/EvaluationPage.jsx';
 
 export function App() {
   return <Routes><Route path="login" element={<AuthPage />} /><Route path="register" element={<AuthPage registration />} /><Route element={<ProtectedRoute />}><Route element={<Layout />}><Route index element={<HomeRedirect />} /><Route path="foundation" element={<OverviewPage />} />
@@ -26,7 +27,7 @@ export function App() {
       <Route path={`${role}/documents`} element={<DocumentsPage />} />
       <Route path={`${role}/documents/:id`} element={<SubmissionDetailPage />} />
       <Route path={`${role}/feedback`} element={<FeedbackPage />} />
-      <Route path={`${role}/evaluations`} element={<RecordsPage kind="evaluations" />} />
+      <Route path={`${role}/evaluations`} element={<EvaluationPage />} />
       <Route path={`${role}/notifications`} element={<RecordsPage kind="notifications" />} />
       <Route path={`${role}/profile`} element={<ProfilePage />} />
       <Route path={`${role}/resources`} element={<ResourcesPage />} />

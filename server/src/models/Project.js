@@ -6,6 +6,9 @@ const finalGradeSchema = new mongoose.Schema({
   finalizedBy: reference('User'),
   finalizedAt: { type: Date, required: true },
   comment: { type: String, maxlength: 5000 },
+  evaluation: reference('Evaluation', false),
+  submission: reference('Submission', false),
+  criteria: [{ name: String, maxMarks: Number, marks: Number }],
 }, { _id: false });
 
 const projectSchema = new mongoose.Schema({
@@ -30,6 +33,9 @@ const projectSchema = new mongoose.Schema({
   // The later evaluation service must reserve attempts atomically and authorize membership.
   aiAttemptsUsed: { type: Number, default: 0, min: 0, max: 2, validate: Number.isInteger },
   submissionCount: { type: Number, default: 0, min: 0 },
+  evaluationLock: { type: new mongoose.Schema({ id: String, at: Date }, { _id: false }), default: undefined },
+  finalSubmission: reference('Submission', false),
+  finalSubmittedAt: Date,
   finalGrade: { type: finalGradeSchema, default: undefined },
 }, modelOptions);
 projectSchema.index({ members: 1, status: 1 });
