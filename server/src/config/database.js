@@ -7,6 +7,9 @@ mongoose.set('bufferCommands', false);
 export async function connectDatabase(uri = config.mongoUri) {
   if (!uri) return false;
   await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+  // Initialize indexes after connecting; model compilation must not try database
+  // operations while buffering is disabled and the connection is still absent.
+  await Promise.all(Object.values(mongoose.models).map((model) => model.createIndexes()));
   return true;
 }
 

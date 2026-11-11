@@ -13,4 +13,4 @@ export const fileSchema = new mongoose.Schema({
   size: { type: Number, required: true, min: 1 },
 }, { _id: false });
 
-export const modelOptions = { timestamps: true, strict: 'throw' };
+export const modelOptions = { timestamps: true, strict: 'throw', autoCreate: false, autoIndex: false };

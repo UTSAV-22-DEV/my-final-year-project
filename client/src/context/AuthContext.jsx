@@ -2,38 +2,25 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { apiRequest } from '../lib/api.js';
 
 const AuthContext = createContext(null);
-const tokenKey = 'fyp.accessToken';
-
-function storedToken() {
-  try { return window.localStorage.getItem(tokenKey); } catch { return null; }
-}
-
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(storedToken);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(Boolean(token));
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [revision, setRevision] = useState(0);
 
   const clearSession = useCallback(() => {
-    try { window.localStorage.removeItem(tokenKey); } catch { /* Storage may be blocked. */ }
-    setToken(null);
+    try { window.localStorage.removeItem('fyp.accessToken'); } catch { /* Legacy storage may be blocked. */ }
     setUser(null);
     setLoading(false);
     setError(null);
   }, []);
 
-  // The later sign-in flow passes its JWT here. No client-supplied role is trusted.
-  const acceptSession = useCallback((accessToken) => {
-    try { window.localStorage.setItem(tokenKey, accessToken); } catch { /* Session can remain in memory. */ }
-    setLoading(true);
-    setUser(null);
-    setToken(accessToken);
-  }, []);
+  const refreshSession = useCallback(() => { setLoading(true); setRevision((value) => value + 1); }, []);
 
   useEffect(() => {
-    if (!token) return;
+    try { window.localStorage.removeItem('fyp.accessToken'); } catch { /* Clear the Phase 1 token slot. */ }
     const controller = new AbortController();
-    apiRequest('/auth/me', { token, signal: controller.signal })
+    apiRequest('/auth/me', { signal: controller.signal })
       .then((result) => { setUser(result.user); setError(null); })
       .catch((failure) => {
         if (controller.signal.aborted) return;
@@ -42,9 +29,27 @@ export function AuthProvider({ children }) {
       })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [token, clearSession]);
+  }, [revision, clearSession]);
 
-  return <AuthContext.Provider value={{ user, token, loading, error, acceptSession, clearSession }}>{children}</AuthContext.Provider>;
+  useEffect(() => {
+    window.addEventListener('fyp:unauthorized', clearSession);
+    return () => window.removeEventListener('fyp:unauthorized', clearSession);
+  }, [clearSession]);
+
+  const authenticate = async (operation, values) => {
+    const result = await apiRequest(`/auth/${operation}`, { method: 'POST', body: JSON.stringify(values) });
+    setUser(result.user);
+    setError(null);
+    return result.user;
+  };
+  const login = (values) => authenticate('login', values);
+  const register = (values) => authenticate('register', values);
+  const logout = async () => {
+    try { await apiRequest('/auth/logout', { method: 'POST' }); clearSession(); }
+    catch { setError('Sign-out could not be completed. Please try again.'); }
+  };
+
+  return <AuthContext.Provider value={{ user, loading, error, login, register, logout, refreshSession }}>{children}</AuthContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

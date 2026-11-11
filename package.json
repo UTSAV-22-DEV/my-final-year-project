@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AI-Assisted Final Year Project Management System — Phase 1 foundation",
+  "description": "AI-Assisted Final Year Project Management System",
   "workspaces": [
     "client",
     "server"

@@ -14,5 +14,5 @@ export function StatusPage() {
 }
 
 function StatusRow({ icon: Icon, label, description, status, healthy = false }) {
-  return <div className="status-row"><span className="icon-tile indigo"><Icon size={20} aria-hidden="true" /></span><div><h3>{label}</h3><p>{description}</p></div><span className={`service-badge ${healthy ? 'available' : 'pending'}`}><span className={`status-dot ${healthy ? 'green' : 'amber'}`} />{status}</span></div>;
+  return <div className="status-row"><span className="icon-tile indigo"><Icon size={20} aria-hidden="true" /></span><div><h3>{label}</h3><p>{label === 'Authentication' ? 'HttpOnly session cookies, server-verified roles and account restrictions are active.' : description}</p></div><span className={`service-badge ${healthy ? 'available' : 'pending'}`}><span className={`status-dot ${healthy ? 'green' : 'amber'}`} />{label === 'Authentication' ? 'Enabled' : status}</span></div>;
 }

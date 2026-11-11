@@ -28,6 +28,9 @@ export function readConfig(source = process.env) {
     clientOrigin,
     mongoUri: source.MONGODB_URI || '',
     jwtSecret,
+    cookieName: 'fyp_session',
+    sessionSeconds: 8 * 60 * 60,
+    trustedOrigins: source.NODE_ENV === 'production' ? [clientOrigin] : [...new Set([clientOrigin, clientOrigin.replace('localhost', '127.0.0.1')])],
     uploadDir: path.resolve(serverRoot, source.UPLOAD_DIR || 'uploads'),
     maxFileSize: maxFileSizeMb * 1024 * 1024,
   };

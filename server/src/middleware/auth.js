@@ -19,15 +19,16 @@ export async function userFromToken(token) {
   if (mongoose.connection.readyState !== 1) {
     throw new AppError(503, 'Database unavailable.', 'DATABASE_UNAVAILABLE');
   }
-  const user = await User.findById(payload.sub);
+  const user = await User.findById(payload.sub).select('+tokenVersion');
   if (!user || !user.isActive) throw new AppError(401, 'This account is unavailable.', 'UNAUTHENTICATED');
+  if (payload.ver !== (user.tokenVersion || 0)) throw new AppError(401, 'Your session has ended. Please sign in again.', 'INVALID_TOKEN');
   return user;
 }
 
 export async function authenticate(req, res, next) {
   try {
     const match = /^Bearer (\S+)$/i.exec(req.headers.authorization || '');
-    req.user = await userFromToken(match?.[1]);
+    req.user = await userFromToken(match?.[1] || req.cookies?.[config.cookieName]);
     next();
   } catch (error) {
     next(error);

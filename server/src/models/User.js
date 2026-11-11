@@ -9,15 +9,23 @@ const userSchema = new mongoose.Schema({
   department: { type: String, trim: true, maxlength: 120 },
   studentId: { type: String, trim: true, maxlength: 50 },
   isActive: { type: Boolean, default: true },
+  tokenVersion: { type: Number, default: 0, select: false },
 }, {
   ...modelOptions,
   toJSON: {
     transform(doc, result) {
       delete result.passwordHash;
+      delete result.tokenVersion;
       delete result.__v;
       return result;
     },
   },
+});
+
+// Project owns the assignment; this virtual avoids a second list becoming stale.
+userSchema.virtual('assignedProjects', {
+  ref: 'Project', localField: '_id',
+  foreignField: (user) => user.role === 'teacher' ? 'supervisor' : 'members',
 });
 
 export const User = mongoose.model('User', userSchema);
